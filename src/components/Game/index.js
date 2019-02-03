@@ -1,24 +1,9 @@
 import React, { Component } from 'react';
 import './Game.css';
 import Matrix from "../../containers/matrix";
-
-window.accurateInterval = function(fn, time) {
-    var cancel, nextAt, timeout, wrapper;
-    nextAt = new Date().getTime() + time;
-    timeout = null;
-    wrapper = function() {
-      nextAt += time;
-      timeout = setTimeout(wrapper, nextAt - new Date().getTime());
-      return fn();
-    };
-    cancel = function() {
-      return clearTimeout(timeout);
-    };
-    timeout = setTimeout(wrapper, nextAt - new Date().getTime());
-    return {
-      cancel: cancel
-    };
-};
+import NextBox from "../../containers/next";
+import { initNextTetrominos, startTimer } from '../../actions';
+import { connect } from "react-redux";
 
 /*
 class HoldBox extends Component {
@@ -47,15 +32,6 @@ class PauseButton extends Component {
         </div>;
     }
 }
-
-class NextBox extends Component {
-
-    render() {
-        return <div>
-
-        </div>;
-    }
-}
 */
 
 
@@ -67,23 +43,26 @@ class Game extends Component {
     }
 
     componentDidMount() {
-
+        this.startGame();
     }
 
     // Game logic
     startGame() {
         // start countdown
-        // load next Tetrominos list
+        this.props.dispatch(initNextTetrominos());
         // spawn first Tetromino
-        // start timer
+        this.props.dispatch(startTimer(600));
         // enable controls
     }
 
     render () {
         return <div id="Game">
             <Matrix />
+            <div id="right-panel">
+                <NextBox />
+            </div>
         </div>;
     }
 }
 
-export default Game;
+export default connect() (Game);

@@ -29,21 +29,21 @@ class Matrix extends Component {
     }
 
     componentDidMount() {
-        
+
         this.spawnNextTetromino();
     }
 
     spawnNextTetromino() {
         // spawn next tetromino with coordinates (5, 1)
         let nextTetromino = getRandomTetromino();
-        let tetrominoProps = getTetrominoProperties(nextTetromino.type);
+        let tetrominoProps = getTetrominoProperties(nextTetromino);
 
-        let offsetY = (nextTetromino.type === "I" || nextTetromino.type === "O") ? 0 : 1;
+        let offsetY = (nextTetromino === "I" || nextTetromino === "O") ? 0 : 1;
         let cellsToChange = [[5, 1 + offsetY]]
         tetrominoProps.shape[0].forEach(coord => {
             cellsToChange.push([5 + coord[0], 1 - coord[1] + offsetY]);
         });
-        this.props.dispatch(changeMatrix(cellsToChange, nextTetromino.type));
+        this.props.dispatch(changeMatrix(cellsToChange, nextTetromino));
         
         this.setState({
             tetromino: {
