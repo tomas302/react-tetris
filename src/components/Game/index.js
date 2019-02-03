@@ -20,8 +20,7 @@ window.accurateInterval = function(fn, time) {
     };
 };
 
-
-
+/*
 class HoldBox extends Component {
 
     render() {
@@ -57,6 +56,8 @@ class NextBox extends Component {
         </div>;
     }
 }
+*/
+
 
 class Game extends Component {
     constructor(props) {
@@ -71,10 +72,12 @@ class Game extends Component {
 
     // Game logic
     startGame() {
-
+        // start countdown
+        // load next Tetrominos list
+        // spawn first Tetromino
+        // start timer
+        // enable controls
     }
-
-
 
     render () {
         return <div id="Game">
