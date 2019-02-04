@@ -34,183 +34,211 @@ const shape = {
     I: [
         // default rotation
         [
+            [0, 0],
             [1, 0],
             [-1, 0],
             [-2, 0],
         ],
         // second rotation
         [
-            [0, 1],
+            [0, 0],
             [0, -1],
-            [0, -2],
+            [0, 1],
+            [0, 2],
         ],
         // third rotation
         [
-            [1, 0],
-            [-1, 0],
-            [-2, 0],
+            [0, 1],
+            [1, 1],
+            [-1, 1],
+            [-2, 1],
         ],
         // fourth rotation
         [
-            [0, 1],
-            [0, -1],
-            [0, -2],
+            [-1, 0],
+            [-1, -1],
+            [-1, 1],
+            [-1, 2],
         ]
     ],
     J: [
         // default rotation
         [
+            [0, 0],
             [1, 0],
             [-1, 0],
-            [-1, 1],
+            [-1, -1],
         ],
         // second rotation
         [
+            [0, 0],
             [0, -1],
+            [1, -1],
             [0, 1],
-            [1, 1],
         ],
         // third rotation
         [
+            [0, 0],
             [-1, 0],
             [1, 0],
-            [1, -1],
+            [1, 1],
         ],
         // fourth rotation
         [
+            [0, 0],
             [0, 1],
+            [-1, 1],
             [0, -1],
-            [-1, -1],
         ]
     ],
     L: [
         // default rotation
         [
+            [0, 0],
             [-1, 0],
             [1, 0],
-            [1, 1],
+            [1, -1],
         ],
         // second rotation
         [
-            [0, 1],
+            [0, 0],
             [0, -1],
-            [1, -1],
+            [0, 1],
+            [1, 1],
         ],
         // third rotation
         [
+            [0, 0],
             [1, 0],
             [-1, 0],
-            [-1, -1],
+            [-1, 1],
         ],
         // fourth rotation
         [
+            [0, 0],
             [0, -1],
+            [-1, -1],
             [0, 1],
-            [-1, 1],
         ]
     ],
     O: [
         // default rotation
         [
-            [0, -1],
-            [-1, -1],
+            [0, 0],
+            [0, 1],
+            [-1, 1],
             [-1, 0],
         ],
         // second rotation
         [
-            [0, -1],
-            [-1, -1],
+            [0, 0],
+            [0, 1],
+            [-1, 1],
             [-1, 0],
         ],
         // third rotation
         [
-            [0, -1],
-            [-1, -1],
+            [0, 0],
+            [0, 1],
+            [-1, 1],
             [-1, 0],
         ],
         // fourth rotation
         [
-            [0, -1],
-            [-1, -1],
+            [0, 0],
+            [0, 1],
+            [-1, 1],
             [-1, 0],
         ]
     ],
     S: [
         // default rotation
         [
-            [1, 1],
-            [0, 1],
+            [0, 0],
+            [1, -1],
+            [0, -1],
             [-1, 0],
         ],
         // second rotation
         [
-            [0, 1],
+            [0, 0],
+            [0, -1],
             [1, 0],
-            [1, -1],
+            [1, 1],
         ],
         // third rotation
         [
+            [0, 0],
             [1, 0],
-            [0, -1],
-            [-1, -1],
+            [0, 1],
+            [-1, 1],
         ],
         // fourth rotation
         [
-            [-1, 1],
+            [0, 0],
+            [-1, -1],
             [-1, 0],
-            [0, -1],
+            [0, 1],
         ]
     ],
     T: [
         // default rotation
         [
+            [0, 0],
             [1, 0],
             [-1, 0],
-            [0, 1],
+            [0, -1],
         ],
         // second rotation
         [
-            [0, 1],
+            [0, 0],
             [0, -1],
+            [0, 1],
             [1, 0],
         ],
         // third rotation
         [
+            [0, 0],
             [1, 0],
             [-1, 0],
-            [0, -1],
+            [0, 1],
         ],
         // fourth rotation
         [
-            [0, 1],
+            [0, 0],
             [0, -1],
+            [0, 1],
             [-1, 0],
         ]
     ],
     Z: [
         // default rotation
         [
+            [0, 0],
             [1, 0],
-            [0, 1],
-            [-1, 1],
+            [0, -1],
+            [-1, -1],
         ],
         // second rotation
         [
-            [1, 1],
+            [0, 0],
+            [1, -1],
             [1, 0],
-            [0, -1],
+            [0, 1],
         ],
         // third rotation
         [
+            [0, 0],
             [-1, 0],
-            [0, -1],
-            [1, -1],
+            [0, 1],
+            [1, 1],
         ],
         // fourth rotation
         [
+            [0, 0],
             [-1, 0],
-            [-1, -1],
-            [0, 1],
+            [-1, 1],
+            [0, -1],
         ]
     ]
 };
@@ -251,12 +279,9 @@ const changeTetrominoPosition = (tetromino, newPosition, dispatch, newOrientatio
     let tetrominoProps = tetromino.tetrominoProps;
 
     let cellsToChange = [];
-    let offsetY = (type === "I" || type === "O") ? 0 : 1;
     tetrominoProps.shape[orientation].forEach(coord => {
-        cellsToChange.push([newPosition[0] + coord[0], newPosition[1] - coord[1] + offsetY]);
+        cellsToChange.push([newPosition[0] + coord[0], newPosition[1] + coord[1]]);
     });
-    // (0, 0)
-    cellsToChange.push([newPosition[0], newPosition[1] + offsetY]);
     dispatch(changeMatrix(pastCells, "none"));
     dispatch(changeMatrix(cellsToChange, type));
     return cellsToChange;
