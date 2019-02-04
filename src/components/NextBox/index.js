@@ -12,7 +12,7 @@ class NextBox extends Component {
 
     render() {
         let nextTetrominos = [];
-        console.log(this.props.nextTetrominos);
+        let totalCells = 0;
         for (let i = 0; i < this.props.nextTetrominos.length; i++) {
             let cells = [];
             let shape = getTetrominoProperties(this.props.nextTetrominos[i]).shape[2];
@@ -39,10 +39,11 @@ class NextBox extends Component {
                         print = true;
                     }
                     
+                    totalCells += 1;
                     if (print) {
-                        cells.push(<NextCell tetromino={ this.props.nextTetrominos[i] } />)
+                        cells.push(<NextCell key={ totalCells } tetromino={ this.props.nextTetrominos[i] } />)
                     } else {
-                        cells.push(<NextCell tetromino={ "none" } />)
+                        cells.push(<NextCell key={ totalCells } tetromino={ "none" } />)
                     }
                 }
             }

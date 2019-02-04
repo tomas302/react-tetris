@@ -8,9 +8,10 @@ export const initNextTetrominos = () => ({
     type: 'INIT_NEXT_TETROMINOS'
 })
 
-export const startTimer = (delay) => ({
+export const startTimer = (delay, fn) => ({
     type: 'START_TIMER',
-    delay: delay
+    delay: delay,
+    fn: fn
 })
 
 export const stopTimer = () => ({

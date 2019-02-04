@@ -21,7 +21,7 @@ window.accurateInterval = function(fn, time) {
 const timer = (state = -1, action) => {
     switch(action.type) {
         case 'START_TIMER':
-            return window.accurateInterval(() => {}, action.delay);
+            return window.accurateInterval(action.fn, action.delay);
         case 'STOP_TIMER':
             return state.cancel();
         default:

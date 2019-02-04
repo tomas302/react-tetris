@@ -1,3 +1,5 @@
+import { changeMatrix } from '../../actions';
+
 const types = [
     "I",
     "J",
@@ -66,7 +68,7 @@ const shape = {
         [
             [0, -1],
             [0, 1],
-            [1, -1],
+            [1, 1],
         ],
         // third rotation
         [
@@ -104,7 +106,7 @@ const shape = {
         [
             [0, -1],
             [0, 1],
-            [-1, -1],
+            [-1, 1],
         ]
     ],
     O: [
@@ -215,7 +217,7 @@ const shape = {
 
 const getRandomTetromino = (amount) => {
     if (amount) {
-        if (amount > 10) throw Error("Why do you need so many Tetrominos??"); 
+        if (amount > 10) throw Error("Why do you need so many Tetrominos??");
         let tetrominos = [];
         let availableTetro = types.slice();
         for (let i = 0; i < amount; i++) {
@@ -238,4 +240,26 @@ const getTetrominoProperties = (type) => {
     };
 };
 
-export { getRandomTetromino, getTetrominoProperties };
+// if called with the same position, refreshes the cells. Useful for rotating.
+const changeTetrominoPosition = (tetromino, newPosition, dispatch, newOrientation) => {
+    let orientation = tetromino.orientation;
+    if (newOrientation !== undefined) {
+        orientation = newOrientation;
+    }
+    let pastCells = tetromino.cells;
+    let type = tetromino.type;
+    let tetrominoProps = tetromino.tetrominoProps;
+
+    let cellsToChange = [];
+    let offsetY = (type === "I" || type === "O") ? 0 : 1;
+    tetrominoProps.shape[orientation].forEach(coord => {
+        cellsToChange.push([newPosition[0] + coord[0], newPosition[1] - coord[1] + offsetY]);
+    });
+    // (0, 0)
+    cellsToChange.push([newPosition[0], newPosition[1] + offsetY]);
+    dispatch(changeMatrix(pastCells, "none"));
+    dispatch(changeMatrix(cellsToChange, type));
+    return cellsToChange;
+};
+
+export { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition };
