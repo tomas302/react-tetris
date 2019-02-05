@@ -5,8 +5,7 @@ import NextBox from "../../containers/next";
 import { initNextTetrominos, startTimer } from '../../actions';
 import { connect } from "react-redux";
 import { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition } from "../Tetromino/";
-import { loadNewTetromino } from '../../actions';
-import cell from '../../containers/cell';
+import { loadNewTetromino, copyMatrix } from '../../actions';
 import { WIDTH, HEIGHT } from '../../constants';
 
 /*
@@ -57,6 +56,7 @@ class Game extends Component {
         this.startGame = this.startGame.bind(this);
         this.gameTick = this.gameTick.bind(this);
         this.spawnNextTetromino = this.spawnNextTetromino.bind(this);
+        this.linesAchieved = this.linesAchieved.bind(this);
         this.turnTetrominoIntoCells = this.turnTetrominoIntoCells.bind(this);
         this.moveTetromino = this.moveTetromino.bind(this);
         this.rotationCalculations = this.rotationCalculations.bind(this);
@@ -128,9 +128,74 @@ class Game extends Component {
         });
     }
 
+    /*
+    this function is called when a new line or lines is or are scored,
+    so it has to move all cells down by the number of lines completed
+    that is below them in the matrix
+    */
+    linesAchieved(completedLines) {
+        let newMatrix = [];
+        for (let x = 0; x < WIDTH; x++) {
+            let column = [];
+            for (let y = 0; y < HEIGHT; y++) {
+                column.push({ tetromino: 'none' });
+            }
+            newMatrix.push(column);
+        }
+        for (let i = completedLines.length - 1; i >= 0; i--) {
+            let rowToClean = completedLines[i];
+            for (let y = rowToClean; y >= 0; y--) {
+                let amountToMove = completedLines.length - i;
+                for (let x = 0; x < WIDTH; x++) {
+                    if (y === rowToClean) {
+                        newMatrix[x][y].tetromino = "none";
+                    } else {
+                        newMatrix[x][y + amountToMove].tetromino = this.props.matrix[x][y].tetromino;
+                    }
+                }
+            }
+        }
+        this.props.dispatch(copyMatrix(newMatrix, completedLines[completedLines.length - 1]));
+    }
+
     turnTetrominoIntoCells() {
+        // once a tetromino lands, check if a line has been completed, spawn next one and update nextTetrominos array
+        let cells = this.state.tetromino.cells;
+
+        // an array containing the rows that have a new cell occupied because of the tetromino that just landed
+        let possibleLines = [];
+        // iterate through the cells array to find the rows affected by the tetromino that just landed
+        cells.forEach(element => {
+            let contained = possibleLines.some(storedLine => {
+                if (element[1] === storedLine) {
+                    return true;
+                }
+                return false;
+            });
+            if (!contained) {
+                possibleLines.push(element[1]);
+            }
+        });
+        let completedLines = [];
+        for (let i = 0; i < possibleLines.length; i++) {
+            let complete = true;
+            for (let x = 0; x < WIDTH; x++) {
+                // if one cell is empty, then is not a full line
+                if (this.props.matrix[x][possibleLines[i]].tetromino === "none") {
+                    complete = false;
+                    break;
+                }
+            }
+            if (complete)
+                completedLines.push(possibleLines[i]);
+        }
+        if (completedLines.length !== 0) {
+            this.linesAchieved(completedLines.sort());
+        }
+
         this.spawnNextTetromino(this.props.nextTetromino);
         this.props.dispatch(loadNewTetromino());
+
     }
 
     moveTetromino(x, y) {

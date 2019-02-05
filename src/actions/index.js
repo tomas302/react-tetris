@@ -4,6 +4,12 @@ export const changeMatrix = (cells, tetromino) => ({
     tetromino: tetromino
 })
 
+export const copyMatrix = (newMatrix, lowerLine) => ({
+    type: 'COPY_MATRIX',
+    newMatrix: newMatrix,
+    lowerLine: lowerLine
+})
+
 export const initNextTetrominos = () => ({
     type: 'INIT_NEXT_TETROMINOS'
 })

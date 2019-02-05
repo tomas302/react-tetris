@@ -9,15 +9,6 @@ const types = [
     "T",
     "Z"
 ];
-const color = {
-    I: "cyan",
-    J: "blue",
-    L: "rgb(224, 146, 0)",
-    O: "yellow",
-    S: "lime",
-    T: "purple",
-    Z: "red"
-};
 /*
     This object defines the shape of each type of Tetromino taking as relative center the rotation center defined by the official Super Rotation System(https://tetris.fandom.com/wiki/SRS).
     Because I need to have an actual coordinate in the cell grid (x, y) for performing the rotation,
