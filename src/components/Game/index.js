@@ -5,7 +5,7 @@ import NextBox from "../../containers/next";
 import { initNextTetrominos, startTimer } from '../../actions';
 import { connect } from "react-redux";
 import { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition } from "../Tetromino/";
-import { changeMatrix } from '../../actions';
+import { loadNewTetromino } from '../../actions';
 import cell from '../../containers/cell';
 import { WIDTH, HEIGHT } from '../../constants';
 
@@ -57,7 +57,9 @@ class Game extends Component {
         this.startGame = this.startGame.bind(this);
         this.gameTick = this.gameTick.bind(this);
         this.spawnNextTetromino = this.spawnNextTetromino.bind(this);
+        this.turnTetrominoIntoCells = this.turnTetrominoIntoCells.bind(this);
         this.moveTetromino = this.moveTetromino.bind(this);
+        this.rotationCalculations = this.rotationCalculations.bind(this);
         this.rotateTetromino = this.rotateTetromino.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleKeyUp = this.handleKeyUp.bind(this);
@@ -80,14 +82,11 @@ class Game extends Component {
         this.props.dispatch(initNextTetrominos());
         this.spawnNextTetromino();
         this.props.dispatch(startTimer(60, this.gameTick));
-        // enable controls
     }
 
     gameTick() {
-        //this.moveTetromino(0, 0);
-        //this.rotateTetromino(false);
         if (Date.now() - this.state.lastTimeGravityWasApplied > this.state.gravityInterval) {
-            // this.moveTetromino(0, 1);
+            this.moveTetromino(0, 1);
             this.setState({
                 lastTimeGravityWasApplied: Date.now()
             });
@@ -109,9 +108,9 @@ class Game extends Component {
         }
     }
 
-    spawnNextTetromino() {
+    spawnNextTetromino(next) {
         // spawn next tetromino with coordinates (5, 1)
-        let nextTetromino = getRandomTetromino();
+        let nextTetromino = (next === undefined) ? getRandomTetromino() : next;
         let tetrominoProps = getTetrominoProperties(nextTetromino);
 
         let newTetrominoObject = {
@@ -129,14 +128,20 @@ class Game extends Component {
         });
     }
 
+    turnTetrominoIntoCells() {
+        this.spawnNextTetromino(this.props.nextTetromino);
+        this.props.dispatch(loadNewTetromino());
+    }
+
     moveTetromino(x, y) {
         let pastPosition = this.state.tetromino.position;
 
         // check collisions
         let currentShape = this.state.tetromino.tetrominoProps.shape[this.state.tetromino.orientation];
-        // first check with the borders of the matrix
+        let currentCells = this.state.tetromino.cells;
         let canMove = true;
 
+        // first check with the borders of the matrix
         currentShape.some(element => {
             let newX = pastPosition[0] + element[0] + x;
             if (newX < 0 || newX > WIDTH - 1) {
@@ -148,9 +153,26 @@ class Game extends Component {
                 canMove = false;
                 return true;
             }
+            // after that check for any existing cell
+            let contained = currentCells.some(el => {
+                if (el[0] === newX && el[1] === newY)
+                    return true;
+                return false;
+            });
+            if (!contained && this.props.matrix[newX][newY].tetromino !== "none") {
+                canMove = false;
+                return true;
+            }
             return false;
         });
-        if (!canMove) return;
+        if (!canMove) {
+            if (y === 1) {
+                this.turnTetrominoIntoCells();
+                return;
+            } else {
+                return;
+            }
+        }
         // after checking collisions, set new position
         let finalX = pastPosition[0];
         let finalY = pastPosition[1];
@@ -168,6 +190,24 @@ class Game extends Component {
         });
     }
 
+    rotationCalculations(newX, newY, currentCells) {
+        if (newX < 0 || newX > WIDTH - 1) {
+            return [true, "no"];
+        }
+        if (newY < 0 || newY > HEIGHT - 1) {
+            return [true, "no"];
+        }
+        let contained = currentCells.some(el => {
+            if (el[0] === newX && el[1] === newY)
+                return true;
+            return false;
+        });
+        if (!contained && this.props.matrix[newX][newY].tetromino !== "none") {
+            return [true, "no"];
+        }
+        return false;
+    }
+
     // true -> right, false -> left
     rotateTetromino() {
         // I have designed my wall kick system (how to rotate a tetromino when it's against a wall)
@@ -175,11 +215,12 @@ class Game extends Component {
 
         let newOrientation = (this.state.tetromino.orientation + 1 > 3) ? 0 : this.state.tetromino.orientation + 1;
         let position = this.state.tetromino.position;
+        let currentCells = this.state.tetromino.cells;
         // get the current shape of the tetromino
         // "yes" if it can without wall kick, "no" if it can't without wall kick, "right" if it has to move 1 block to the right and "left" if it has to move 1 block to the left
         let canRotate = "yes";
         // edge case. when the tetromino I is rotated with the center in a bad spot and near a matrix edge
-        if (this.state.tetromino.type === "I" && ((position[0] === 10 && this.state.tetromino.orientation === 3) || (position[0] === 0 && this.state.tetromino.orientation === 1)) ) {
+        if (this.state.tetromino.type === "I" && ((position[0] === 10 && this.state.tetromino.orientation === 3) || (position[0] === 0 && this.state.tetromino.orientation === 1))) {
             newOrientation = (newOrientation === 0) ? 2 : 0;
             if (position[0] === 10) {
                 position = [position[0] - 1, position[1]];
@@ -191,59 +232,44 @@ class Game extends Component {
 
         nextShape.some(element => {
             let newX = position[0] + element[0];
-            if (newX < 0 || newX > WIDTH - 1) {
-                canRotate = "no";
-                return true;
-            }
             let newY = position[1] + element[1];
-            if (newY < 0 || newY > HEIGHT - 1) {
-                canRotate = "no";
-                return true;
-            }
-            return false;
+            let result = this.rotationCalculations(newX, newY, currentCells);
+            if (result[1] !== undefined)
+                canRotate = result[1];
+            return result[0];
         });
         // it can't perform a basic rotation, so we check for the wall kicks
         if (canRotate === "no") {
             canRotate = "right";
             nextShape.some(element => {
                 let newX = position[0] + element[0] + 1;
-                if (newX < 0 || newX > WIDTH - 1) {
-                    canRotate = "no";
-                    return true;
-                }
                 let newY = position[1] + element[1];
-                if (newY < 0 || newY > HEIGHT - 1) {
-                    canRotate = "no";
-                    return true;
-                }
-                return false;
+                let result = this.rotationCalculations(newX, newY, currentCells);
+                if (result[1] !== undefined)
+                    canRotate = result[1];
+                return result[0];
             });
             if (canRotate === "no") {
                 canRotate = "left";
                 nextShape.some(element => {
                     let newX = position[0] + element[0] - 1;
-                    if (newX < 0 || newX > WIDTH - 1) {
-                        canRotate = "no";
-                        return true;
-                    }
                     let newY = position[1] + element[1];
-                    if (newY < 0 || newY > HEIGHT - 1) {
-                        canRotate = "no";
-                        return true;
-                    }
-                    return false;
+                    let result = this.rotationCalculations(newX, newY, currentCells);
+                    if (result[1] !== undefined)
+                        canRotate = result[1];
+                    return result[0];
                 });
             }
         }
         if (canRotate === "no") {
-            return ;
+            return;
         }
         let newPosition = [position[0], position[1]]
-        switch(canRotate) {
-            case("right"):
+        switch (canRotate) {
+            case ("right"):
                 newPosition[0] += 1;
                 break;
-            case("left"):
+            case ("left"):
                 newPosition[0] -= 1;
                 break;
             default:

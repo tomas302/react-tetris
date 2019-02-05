@@ -8,6 +8,10 @@ export const initNextTetrominos = () => ({
     type: 'INIT_NEXT_TETROMINOS'
 })
 
+export const loadNewTetromino = () => ({
+    type: 'LOAD_NEW_TETROMINO'
+})
+
 export const startTimer = (delay, fn) => ({
     type: 'START_TIMER',
     delay: delay,
