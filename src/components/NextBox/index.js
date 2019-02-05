@@ -4,7 +4,7 @@ import './NextBox.css';
 
 class NextCell extends Component {
     render() {
-        return <div className={ "cell " + this.props.tetromino }></div>
+        return <div className={ "next-cell " + this.props.tetromino }></div>
     }
 }
 
@@ -17,7 +17,7 @@ class NextBox extends Component {
             let cells = [];
             let shape = getTetrominoProperties(this.props.nextTetrominos[i]).shape[2];
             let size = (this.props.nextTetrominos[i] === "I") ? 4 : (this.props.nextTetrominos[i] === "O") ? 2 : 3;
-            for (let y = 0; y < size; y++) {
+            for (let y = 0; y < ((size === 4) ? 3: size); y++) {
                 for (let x = 0; x < size; x++) {
                     let print = false;
                     if (size === 3) {
@@ -29,7 +29,7 @@ class NextBox extends Component {
                         });
                     } else if (size === 4) {
                         shape.forEach(element => {
-                            if (element[0] + 2 === x && element[1] + 1 === y) {
+                            if (element[0] + 2 === x && element[1] === y) {
                                 print = true;
                                 return;
                             }
@@ -46,7 +46,7 @@ class NextBox extends Component {
                     }
                 }
             }
-            nextTetrominos.push(<div className={ "next-matrix-"+size } key={ i }>
+            nextTetrominos.push(<div className={ "next-matrix-"+ size  } key={ i }>
                 {cells}
             </div>);
         }

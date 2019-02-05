@@ -2,30 +2,15 @@ import React, { Component } from 'react';
 import './Game.css';
 import Matrix from "../../containers/matrix";
 import NextBox from "../../containers/next";
+import HoldBox from "../../containers/hold";
+import StatsBox from "../StatsBox";
 import { initNextTetrominos, startTimer } from '../../actions';
 import { connect } from "react-redux";
-import { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition } from "../Tetromino/";
-import { loadNewTetromino, copyMatrix } from '../../actions';
+import { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition, spawnTetromino } from "../Tetromino/";
+import { loadNewTetromino, copyMatrix, stopTimer } from '../../actions';
 import { WIDTH, HEIGHT } from '../../constants';
 
 /*
-class HoldBox extends Component {
-
-    render() {
-        return <div>
-
-        </div>;
-    }
-}
-
-class StatsBox extends Component {
-
-    render() {
-        return <div>
-
-        </div>;
-    }
-}
 
 class PauseButton extends Component {
 
@@ -108,6 +93,13 @@ class Game extends Component {
         }
     }
 
+    gameOver() {
+        this.props.dispatch(stopTimer());
+        // freeze game and open a new dialog
+        // show score and maybe implement a leaderboard
+        // give the choice to play again or go to the main menu
+    }
+
     spawnNextTetromino(next) {
         // spawn next tetromino with coordinates (5, 1)
         let nextTetromino = (next === undefined) ? getRandomTetromino() : next;
@@ -121,7 +113,11 @@ class Game extends Component {
             orientation: 0
         };
 
-        newTetrominoObject.cells = changeTetrominoPosition(newTetrominoObject, newTetrominoObject.position, this.props.dispatch, 0);
+        newTetrominoObject.cells = spawnTetromino(newTetrominoObject, newTetrominoObject.position, this.props.dispatch, 0, this.props.matrix);
+
+        if (newTetrominoObject.cells === false) { // cannot spawn because cells are occupied, thus the game is over
+            this.gameOver();
+        }
 
         this.setState({
             tetromino: newTetrominoObject
@@ -353,6 +349,8 @@ class Game extends Component {
     }
 
     handleKeyDown(event) {
+        if (this.props.timer === -1)
+            return;
         switch (event.key) {
             case ("ArrowRight"):
                 this.setState({
@@ -384,6 +382,8 @@ class Game extends Component {
     }
 
     handleKeyUp(event) {
+        if (this.props.timer === -1)
+            return;
         switch (event.key) {
             case ("ArrowUp"):
                 if (!this.state.canRotate) {
@@ -404,6 +404,10 @@ class Game extends Component {
 
     render() {
         return <div id="Game">
+            <div id="left-panel">
+                <HoldBox />
+                <StatsBox />
+            </div>
             <Matrix />
             <div id="right-panel">
                 <NextBox />

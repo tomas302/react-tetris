@@ -1,0 +1,15 @@
+#StatsBox {
+    background-color: black;
+    color: white;
+    padding: 1px 30px 30px 30px;
+    width: 112px;
+    height: 175px;
+}
+
+#mirror {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: white;
+    color: black;
+}

@@ -23,7 +23,8 @@ const timer = (state = -1, action) => {
         case 'START_TIMER':
             return window.accurateInterval(action.fn, action.delay);
         case 'STOP_TIMER':
-            return state.cancel();
+            state.cancel()
+            return -1;
         default:
             return state;
     }

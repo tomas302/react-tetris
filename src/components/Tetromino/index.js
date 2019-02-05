@@ -259,6 +259,30 @@ const getTetrominoProperties = (type) => {
     };
 };
 
+const spawnTetromino = (tetromino, newPosition, dispatch, newOrientation, matrix) => {
+    let orientation = tetromino.orientation;
+    if (newOrientation !== undefined) {
+        orientation = newOrientation;
+    }
+    let pastCells = tetromino.cells;
+    let type = tetromino.type;
+    let tetrominoProps = tetromino.tetrominoProps;
+
+    let cellsToChange = [];
+    tetrominoProps.shape[orientation].forEach(coord => {
+        cellsToChange.push([newPosition[0] + coord[0], newPosition[1] + coord[1]]);
+    });
+    if (pastCells.length === 0) {
+        if (cellsToChange.some(cell => { if (matrix[cell[0]][cell[1]].tetromino !== "none") { return true; } return false; })) {
+                return false;
+        }
+    } else {
+        dispatch(changeMatrix(pastCells, "none"));
+    }
+    dispatch(changeMatrix(cellsToChange, type));
+    return cellsToChange;
+}
+
 // if called with the same position, refreshes the cells. Useful for rotating.
 const changeTetrominoPosition = (tetromino, newPosition, dispatch, newOrientation) => {
     let orientation = tetromino.orientation;
@@ -278,4 +302,4 @@ const changeTetrominoPosition = (tetromino, newPosition, dispatch, newOrientatio
     return cellsToChange;
 };
 
-export { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition };
+export { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition, spawnTetromino };
