@@ -234,7 +234,7 @@ const shape = {
     ]
 };
 
-const getRandomTetromino = (amount) => {
+const getRandomTetromino = (amount, nextList) => {
     if (amount) {
         if (amount > 10) throw Error("Why do you need so many Tetrominos??");
         let tetrominos = [];
@@ -249,7 +249,21 @@ const getRandomTetromino = (amount) => {
         }
         return tetrominos;
     }
-    let randomTetro = types[Math.floor(Math.random() * 7)];
+    let typesLeft = types.slice();
+    if (nextList !== undefined)
+        for (let i = typesLeft.length - 1; i >= 0; i--) {
+            let remove = false;
+            for (let j = 0; j < nextList.length; j++) {
+                if (typesLeft[i] === nextList[j]) {
+                    remove = true;
+                    break;
+                }
+            }
+            if (remove) {
+                typesLeft.splice(i, 1);
+            }
+        }
+    let randomTetro = typesLeft[Math.floor(Math.random() * typesLeft.length)];
     return randomTetro;
 };
 const getTetrominoProperties = (type) => {

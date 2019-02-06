@@ -5,7 +5,7 @@ const next = (state = [], action) => {
         case 'INIT_NEXT_TETROMINOS':
             return getRandomTetromino(3);
         case 'LOAD_NEW_TETROMINO':
-            return [state[1], state[2], getRandomTetromino()]
+            return [state[1], state[2], getRandomTetromino(null, state)]
         default:
             return state;
     }
