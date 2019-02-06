@@ -52,7 +52,7 @@ class NextBox extends Component {
         }
         return <div id="NextBox">
             <h2>NEXT</h2>
-            <div id="mirror">
+            <div id="next-box">
                 { nextTetrominos }
             </div>
         </div>;

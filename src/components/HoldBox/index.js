@@ -50,7 +50,7 @@ class HoldBox extends Component {
         
         return <div id="HoldBox">
             <h2>HOLD</h2>
-            <div id="mirror">
+            <div id="holder">
                 <div id={"hold-matrix-" + width}>
                     {matrix}
                 </div>

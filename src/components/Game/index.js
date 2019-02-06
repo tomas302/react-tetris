@@ -3,10 +3,11 @@ import './Game.css';
 import Matrix from "../../containers/matrix";
 import NextBox from "../../containers/next";
 import HoldBox from "../../containers/hold";
-import StatsBox from "../StatsBox";
+import StatsBox from "../../containers/stat";
 import { connect } from "react-redux";
 import { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition, spawnTetromino, cleanTetromino } from "../Tetromino/";
 import { initNextTetrominos, startTimer, loadNewTetromino, copyMatrix, stopTimer, holdCurrentTetromino } from '../../actions';
+import { addScore, addLines, reduceGravity } from '../../actions';
 import { WIDTH, HEIGHT } from '../../constants';
 
 /*
@@ -27,6 +28,7 @@ class Game extends Component {
         super(props);
 
         this.state = {
+            gameOver: false,
             tetromino: {},
             rotate: false,
             canRotate: true,
@@ -34,7 +36,6 @@ class Game extends Component {
             pushDown: false,
             waitingToHold: false,
             // in miliseconds
-            gravityInterval: 1000,
             lastTimeGravityWasApplied: Date.now()
         }
 
@@ -72,7 +73,7 @@ class Game extends Component {
     }
 
     gameTick() {
-        if (Date.now() - this.state.lastTimeGravityWasApplied > this.state.gravityInterval) {
+        if (Date.now() - this.state.lastTimeGravityWasApplied > this.props.gravityInterval) {
             this.moveTetromino(0, 1);
             this.setState({
                 lastTimeGravityWasApplied: Date.now()
@@ -91,12 +92,16 @@ class Game extends Component {
             });
         }
         if (this.state.pushDown) {
+            this.props.dispatch(addScore(this.props.level));
             this.moveTetromino(0, 1);
         }
     }
 
     gameOver() {
         this.props.dispatch(stopTimer());
+        this.setState({
+            gameOver: true
+        });
         // freeze game and open a new dialog
         // show score and maybe implement a leaderboard
         // give the choice to play again or go to the main menu
@@ -155,7 +160,35 @@ class Game extends Component {
                 }
             }
         }
+        let score = 0;
+        switch(completedLines.length) {
+            case(1):
+                score = 100 * this.props.level;
+                break;
+            case(2):
+                score = 400 * this.props.level;
+                break;
+            case(3):
+                score = 900 * this.props.level;
+                break;
+            case(4):
+                score = 2000 * this.props.level;
+                break;
+            default:
+                score = 1000;
+                for (let i = 5; i <= completedLines.length; i++) {
+                    score *= i;
+                }
+                score *= this.props.level;
+                break;
+        }
+        this.props.dispatch(addScore(score));
         this.props.dispatch(copyMatrix(newMatrix, completedLines[completedLines.length - 1]));
+        let currentLevel = this.props.level;
+        this.props.dispatch(addLines(completedLines.length));
+        if (this.props.level !== currentLevel) {
+            this.props.dispatch(reduceGravity(150));
+        }
     }
 
     turnTetrominoIntoCells() {
@@ -372,8 +405,14 @@ class Game extends Component {
     }
 
     handleKeyDown(event) {
-        if (this.props.timer === -1)
+        if (this.state.gameOver)
             return;
+        if (event.code === "KeyP") {
+            if (this.props.timer !== -1)
+                this.props.dispatch(stopTimer());
+            else
+                this.props.dispatch(startTimer(60, this.gameTick));
+        }
         switch (event.key) {
             case ("ArrowRight"):
                 this.setState({
@@ -392,7 +431,6 @@ class Game extends Component {
                         canRotate: false
                     });
                 }
-                //this.moveTetromino(0, -1);
                 break;
             case ("ArrowDown"):
                 this.setState({

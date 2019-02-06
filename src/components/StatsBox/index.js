@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { getTetrominoProperties } from '../Tetromino/';
 import './StatsBox.css';
 
 class StatsBox extends Component {
@@ -8,20 +7,22 @@ class StatsBox extends Component {
         return <div id="StatsBox">
             <div>
                 <h3>SCORE</h3>
-                <div id="mirror">
-                give me my props!
+                <div className="stat">
+                { this.props.score }
                 </div>
             </div>
             <div>
                 <h3>LEVEL</h3>
-                <div id="mirror">
-                finish the hold box, the game over sequence, implement the hard drop and pause
+                <div className="stat">
+                { this.props.level }
+                { /* the game over sequence, implement the hard drop*/ }
                 </div>
             </div>
             <div>
                 <h3>LINES</h3>
-                <div id="mirror">
-                change #mirror name and don't define it in 3 classes please... also make it playable in mobile!
+                <div className="stat">
+                { this.props.lines }
+                { /* make it playable in mobile!*/ }
                 </div>
             </div>
         </div>;

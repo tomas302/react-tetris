@@ -6,7 +6,9 @@ function mapStateToProps(store){
         matrix: store.matrix,
         nextTetromino: store.nextTetrominos[0],
         timer: store.timer,
-        tetrominoHeld: store.holding
+        tetrominoHeld: store.holding,
+        level: store.stats.level,
+        gravityInterval: store.gravityInterval
     }
 }
 

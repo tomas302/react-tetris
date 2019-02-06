@@ -20,6 +20,18 @@ export const loadNewTetromino = () => ({
     type: 'LOAD_NEW_TETROMINO'
 })
 
+// StatsBox
+
+export const addScore = (points) => ({
+    type: 'ADD_SCORE',
+    points: points
+})
+
+export const addLines = (lines) => ({
+    type: 'ADD_LINES',
+    lines: lines
+})
+
 // HoldBox
 export const holdCurrentTetromino = (tetromino) => ({
     type: 'HOLD',
@@ -35,4 +47,10 @@ export const startTimer = (delay, fn) => ({
 
 export const stopTimer = () => ({
     type: 'STOP_TIMER'
+})
+
+// gravity
+export const reduceGravity = (amount) => ({
+    type: 'REDUCE_GRAVITY',
+    amount: amount
 })
