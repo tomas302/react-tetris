@@ -11,14 +11,39 @@ class HoldCell extends Component {
 class HoldBox extends Component {
 
     render() {
-        if (this.props.tetrominoHeld != {}) {
-            let holding = this.props.tetrominoHeld;
+        let holding;
+        if (this.props.tetrominoHeld !== "none") {
+            holding = getTetrominoProperties(this.props.tetrominoHeld).shape[0];
         }
+        
         let matrix = [];
+        let width = (this.props.tetrominoHeld === "I") ? 4 : (this.props.tetrominoHeld === "O") ? 2 : 3;
         for (let y = 0; y < 3; y++) {
             let column = [];
-            for (let x = 0; x < 4; x++) {
-                column.push(<HoldCell tetromino={ "none" } />);
+            for (let x = 0; x < width; x++) {
+                let tetromino = "none";
+                if (holding) {
+                    for (let i = 0; i < holding.length; i++) {
+                        switch(this.props.tetrominoHeld) {
+                            case("I"):
+                                if (holding[i][0] + 2 === x && holding[i][1] + 1 === y) {
+                                    tetromino = this.props.tetrominoHeld;
+                                }
+                                break;
+                            case("O"):
+                                if (holding[i][0] + 1 === x && holding[i][1] === y) {
+                                    tetromino = this.props.tetrominoHeld;
+                                }
+                                break;
+                            default:
+                                if (holding[i][0] + 1 === x && holding[i][1] + 1 === y) {
+                                    tetromino = this.props.tetrominoHeld;
+                                }
+                                break;
+                        }
+                    }
+                }
+                column.push(<HoldCell key={ y * 3 + x * 4 } tetromino={ tetromino } />);
             }
             matrix.push(column);
         }
@@ -26,7 +51,7 @@ class HoldBox extends Component {
         return <div id="HoldBox">
             <h2>HOLD</h2>
             <div id="mirror">
-                <div id="hold-matrix">
+                <div id={"hold-matrix-" + width}>
                     {matrix}
                 </div>
             </div>

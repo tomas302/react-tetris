@@ -5,7 +5,8 @@ function mapStateToProps(store){
     return {
         matrix: store.matrix,
         nextTetromino: store.nextTetrominos[0],
-        timer: store.timer
+        timer: store.timer,
+        tetrominoHeld: store.holding
     }
 }
 

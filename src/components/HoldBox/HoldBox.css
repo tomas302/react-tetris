@@ -14,10 +14,24 @@
     background-color: white;
 }
 
-#hold-matrix {
+#hold-matrix-4 {
     display: grid;
     grid-template-columns: repeat(4, 27px);
     grid-template-rows: repeat(3, 27px);
+    padding: 7px;
+}
+
+#hold-matrix-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 27px);
+    grid-template-rows: repeat(3, 27px);
+    padding: 7px;
+}
+
+#hold-matrix-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 27px);
+    grid-template-rows: repeat(2, 27px);
     padding: 7px;
 }
 

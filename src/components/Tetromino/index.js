@@ -302,4 +302,8 @@ const changeTetrominoPosition = (tetromino, newPosition, dispatch, newOrientatio
     return cellsToChange;
 };
 
-export { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition, spawnTetromino };
+const cleanTetromino = (tetromino, dispatch) => {
+    dispatch(changeMatrix(tetromino.cells, "none"));
+};
+
+export { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition, spawnTetromino, cleanTetromino };

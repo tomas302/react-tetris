@@ -1,9 +1,7 @@
-const hold = (state = {}, action) => {
+const hold = (state = "none", action) => {
     switch(action.type) {
         case 'HOLD':
             return action.tetromino;
-        case 'RELEASE':
-            return {};
         default:
             return state;
     }

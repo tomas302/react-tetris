@@ -4,10 +4,9 @@ import Matrix from "../../containers/matrix";
 import NextBox from "../../containers/next";
 import HoldBox from "../../containers/hold";
 import StatsBox from "../StatsBox";
-import { initNextTetrominos, startTimer } from '../../actions';
 import { connect } from "react-redux";
-import { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition, spawnTetromino } from "../Tetromino/";
-import { loadNewTetromino, copyMatrix, stopTimer } from '../../actions';
+import { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition, spawnTetromino, cleanTetromino } from "../Tetromino/";
+import { initNextTetrominos, startTimer, loadNewTetromino, copyMatrix, stopTimer, holdCurrentTetromino } from '../../actions';
 import { WIDTH, HEIGHT } from '../../constants';
 
 /*
@@ -33,6 +32,7 @@ class Game extends Component {
             canRotate: true,
             moveX: 0,
             pushDown: false,
+            waitingToHold: false,
             // in miliseconds
             gravityInterval: 1000,
             lastTimeGravityWasApplied: Date.now()
@@ -46,6 +46,8 @@ class Game extends Component {
         this.moveTetromino = this.moveTetromino.bind(this);
         this.rotationCalculations = this.rotationCalculations.bind(this);
         this.rotateTetromino = this.rotateTetromino.bind(this);
+        this.cleanCurrentTetromino = this.cleanCurrentTetromino.bind(this);
+        this.holdTetromino = this.holdTetromino.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleKeyUp = this.handleKeyUp.bind(this);
     }
@@ -100,7 +102,7 @@ class Game extends Component {
         // give the choice to play again or go to the main menu
     }
 
-    spawnNextTetromino(next) {
+    spawnNextTetromino(next, waitForHolding) {
         // spawn next tetromino with coordinates (5, 1)
         let nextTetromino = (next === undefined) ? getRandomTetromino() : next;
         let tetrominoProps = getTetrominoProperties(nextTetromino);
@@ -117,10 +119,12 @@ class Game extends Component {
 
         if (newTetrominoObject.cells === false) { // cannot spawn because cells are occupied, thus the game is over
             this.gameOver();
+            return;
         }
 
         this.setState({
-            tetromino: newTetrominoObject
+            tetromino: newTetrominoObject,
+            waitingToHold: (waitForHolding === undefined) ? false : waitForHolding
         });
     }
 
@@ -348,6 +352,25 @@ class Game extends Component {
         });
     }
 
+    cleanCurrentTetromino() {
+        cleanTetromino(this.state.tetromino, this.props.dispatch);
+    }
+
+    holdTetromino() {
+        let currentTetrominoType = this.state.tetromino.type;
+        this.setState({
+            waitingToHold: true
+        });
+        this.cleanCurrentTetromino();
+        if (this.props.tetrominoHeld !== "none") {
+            this.spawnNextTetromino(this.props.tetrominoHeld, true);
+        } else {
+            this.spawnNextTetromino(this.props.nextTetromino, true);
+            this.props.dispatch(loadNewTetromino());
+        }
+        this.props.dispatch(holdCurrentTetromino(currentTetrominoType));
+    }
+
     handleKeyDown(event) {
         if (this.props.timer === -1)
             return;
@@ -375,6 +398,11 @@ class Game extends Component {
                 this.setState({
                     pushDown: true
                 });
+                break;
+            case (" "):
+                if (!this.state.waitingToHold) {
+                    this.holdTetromino();
+                }
                 break;
             default:
                 break;
