@@ -12,6 +12,8 @@ import { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition, sp
 import { initNextTetrominos, startTimer, loadNewTetromino, copyMatrix, stopTimer, holdCurrentTetromino } from '../../actions';
 import { addScore, addLines, reduceGravity } from '../../actions';
 import { WIDTH, HEIGHT } from '../../constants';
+// gesture library
+import Hammer from 'hammerjs';
 
 class Game extends Component {
     constructor(props) {
@@ -34,6 +36,7 @@ class Game extends Component {
         }
 
         this.startGame = this.startGame.bind(this);
+        this.listenForGestures = this.listenForGestures.bind(this);
         this.gameTick = this.gameTick.bind(this);
         this.spawnNextTetromino = this.spawnNextTetromino.bind(this);
         this.linesAchieved = this.linesAchieved.bind(this);
@@ -70,10 +73,67 @@ class Game extends Component {
 
     // Game logic
     startGame() {
-        // start countdown
         this.props.dispatch(initNextTetrominos());
         this.spawnNextTetromino();
-        this.props.dispatch(startTimer(60, this.gameTick));
+        this.props.dispatch(startTimer(20, this.gameTick));
+    }
+
+    listenForGestures(matrixDOM) {
+        let mc = new Hammer.Manager(matrixDOM);
+        mc.add(new Hammer.Tap({ event: 'doubletap', taps: 2 }));
+        mc.add(new Hammer.Swipe({ event: 'swipeup', direction: Hammer.DIRECTION_UP }));
+        mc.add(new Hammer.Swipe({ event: 'swipeleft', direction: Hammer.DIRECTION_LEFT }));
+        mc.add(new Hammer.Swipe({ event: 'swiperight', direction: Hammer.DIRECTION_RIGHT }));
+        mc.add(new Hammer.Swipe({ event: 'swipedown', direction: Hammer.DIRECTION_DOWN }));
+        mc.add(new Hammer.Press({ event: 'longpress' }));
+        let doubletap = ((ev) => {
+            if (this.state.gameOver || this.props.timer === -1)
+                return;
+            if (!this.state.waitingToHold) {
+                this.holdTetromino();
+            }
+        });
+        mc.on("doubletap", doubletap);
+        let swipeup = ((ev) => {
+            if (this.state.gameOver || this.props.timer === -1)
+                return;
+            this.setState({
+                rotate: true
+            });
+        });
+        mc.on("swipeup", swipeup);
+        let swipeleft = ((ev) => {
+            if (this.state.gameOver || this.props.timer === -1)
+                return;
+            this.setState({
+                moveX: -1
+            });
+        });
+        mc.on("swipeleft", swipeleft);
+        let swiperight = ((ev) => {
+            if (this.state.gameOver || this.props.timer === -1)
+                return;
+            this.setState({
+                moveX: 1
+            });
+        });
+        mc.on("swiperight", swiperight);
+        let swipedown = ((ev) => {
+            if (this.state.gameOver || this.props.timer === -1)
+                return;
+            this.setState({
+                pushDown: true
+            });
+        });
+        mc.on("swipedown", swipedown);
+        let longpress = ((ev) => {
+            if (this.state.gameOver || this.props.timer === -1)
+                return;
+            if (Date.now() - this.state.timeDropped > 100) {
+                this.dropItHard()
+            }
+        });
+        mc.on("longpress", longpress);
     }
 
     gameTick() {
@@ -98,6 +158,11 @@ class Game extends Component {
         if (this.state.pushDown) {
             this.props.dispatch(addScore(this.props.level));
             this.moveTetromino(0, 1);
+            if (this.state.isMobile) {
+                this.setState({
+                    pushDown: false
+                });
+            }
         }
     }
 
@@ -173,17 +238,17 @@ class Game extends Component {
             }
         }
         let score = 0;
-        switch(completedLines.length) {
-            case(1):
+        switch (completedLines.length) {
+            case (1):
                 score = 100 * this.props.level;
                 break;
-            case(2):
+            case (2):
                 score = 400 * this.props.level;
                 break;
-            case(3):
+            case (3):
                 score = 900 * this.props.level;
                 break;
-            case(4):
+            case (4):
                 score = 2000 * this.props.level;
                 break;
             default:
@@ -305,7 +370,7 @@ class Game extends Component {
         let newPosition = [finalX, finalY];
         let ghostY = this.calculateGhostPieceY(this.state.tetromino, newPosition);
         let [cellsToChange, ghostCells] = changeTetrominoPosition(this.state.tetromino, newPosition, this.props.dispatch, this.state.tetromino.orientation, ghostY);
-        
+
         this.setState({
             tetromino: {
                 ...this.state.tetromino,
@@ -448,7 +513,7 @@ class Game extends Component {
             timeDropped: Date.now()
         });
     }
-    
+
     // returns the Y coordinate of the ghost piece
     calculateGhostPieceY(tetromino, newPosition, newOrientation) {
         let tetro;
@@ -458,8 +523,8 @@ class Game extends Component {
             tetro = Object.assign({}, this.state.tetromino);
         let position = (newPosition) ? newPosition : tetro.position;
         tetro.position = position;
-        
-        if (typeof(newOrientation) === "number") tetro.orientation = newOrientation;
+
+        if (typeof (newOrientation) === "number") tetro.orientation = newOrientation;
         for (let y = position[1] + 1; y <= HEIGHT; y++) {
             if (!this.checkCollisionsByMoving(0, y - position[1], tetro)) {
                 return y - 1;
@@ -546,7 +611,7 @@ class Game extends Component {
     }
 
     handleResize() {
-        if(window.innerWidth < 768) {
+        if (window.innerWidth < 768) {
             this.setState({ isMobile: true });
         } else {
             this.setState({ isMobile: false });
@@ -569,33 +634,33 @@ class Game extends Component {
     render() {
         if (this.state.isMobile) {
             return <div id="Game" className="unselectable container">
-            <div id="Panel" className="col-xs-12 col-md-3">
-                <div className="col-xs-2 col-md-12" id="left-panel">
-                    <HoldBox />
-                    <div>
-                        <PauseButton handler={ this.handlePauseButton } paused={ this.state.paused } />
-                        <FullScreenButton fullscreen={ this.state.fullscreen } handler={ this.handleFullscreenClick } />
+                <div id="Panel" className="col-xs-12 col-md-3">
+                    <div className="col-xs-2 col-md-12" id="left-panel">
+                        <HoldBox />
+                        <div>
+                            <PauseButton handler={this.handlePauseButton} paused={this.state.paused} />
+                            <FullScreenButton fullscreen={this.state.fullscreen} handler={this.handleFullscreenClick} />
+                        </div>
+                    </div>
+                    <div className="col-xs-8 col-md-12">
+                        <StatsBox />
+                        <NextBox />
                     </div>
                 </div>
-                <div className="col-xs-8 col-md-12">
-                    <StatsBox />
-                    <NextBox />
+                <div className="col-xs-12 col-md-5" style={{ display: 'flex', justifyContent: 'center' }}>
+                    <Matrix gestureListener={this.listenForGestures} ref={this._matrix} />
                 </div>
-            </div>
-            <div className="col-xs-12 col-md-5" style={ {display: 'flex', justifyContent: 'center'} }>
-                <Matrix />
-            </div>
-            <GameOverModal ariaHideApp={false} gameOver={ this.state.gameOver } restartGameHandler={ this.restartGame } backHandler={ this.returnToStartMenu } />
-        </div>;
+                <GameOverModal ariaHideApp={false} gameOver={this.state.gameOver} restartGameHandler={this.restartGame} backHandler={this.returnToStartMenu} />
+            </div>;
         } else {
             return <div id="Game" className="unselectable">
                 <div id="left-panel">
                     <HoldBox />
                     <StatsBox />
                 </div>
-                <Matrix />
+                <Matrix gestureListener={this.listenForGestures} ref={this._matrix} />
                 <div id="right-panel">
-                    <PauseButton handler={ this.handlePauseButton } paused={ this.state.paused } />
+                    <PauseButton handler={this.handlePauseButton} paused={this.state.paused} />
                     <NextBox />
                 </div>
             </div>;
