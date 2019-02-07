@@ -4,24 +4,12 @@ import Matrix from "../../containers/matrix";
 import NextBox from "../../containers/next";
 import HoldBox from "../../containers/hold";
 import StatsBox from "../../containers/stat";
+import PauseButton from "../PauseButton";
 import { connect } from "react-redux";
 import { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition, spawnTetromino, cleanTetromino } from "../Tetromino/";
 import { initNextTetrominos, startTimer, loadNewTetromino, copyMatrix, stopTimer, holdCurrentTetromino } from '../../actions';
 import { addScore, addLines, reduceGravity } from '../../actions';
 import { WIDTH, HEIGHT } from '../../constants';
-
-/*
-
-class PauseButton extends Component {
-
-    render() {
-        return <div>
-
-        </div>;
-    }
-}
-*/
-
 
 class Game extends Component {
     constructor(props) {
@@ -29,6 +17,7 @@ class Game extends Component {
 
         this.state = {
             gameOver: false,
+            paused: false,
             tetromino: {},
             rotate: false,
             canRotate: true,
@@ -49,6 +38,9 @@ class Game extends Component {
         this.rotateTetromino = this.rotateTetromino.bind(this);
         this.cleanCurrentTetromino = this.cleanCurrentTetromino.bind(this);
         this.holdTetromino = this.holdTetromino.bind(this);
+        this.dropItHard = this.dropItHard.bind(this);
+        this.calculateGhostPieceY = this.calculateGhostPieceY.bind(this);
+        this.handlePauseButton = this.handlePauseButton.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleKeyUp = this.handleKeyUp.bind(this);
     }
@@ -115,6 +107,8 @@ class Game extends Component {
         let newTetrominoObject = {
             type: tetrominoProps.type,
             cells: [],
+            ghostCells: [],
+            ghostPosition: [],
             tetrominoProps: tetrominoProps,
             position: [5, (tetrominoProps.type === "O" || tetrominoProps.type === "I") ? 1 : 2],
             orientation: 0
@@ -127,10 +121,16 @@ class Game extends Component {
             return;
         }
 
+        let ghostY = this.calculateGhostPieceY(newTetrominoObject, newTetrominoObject.position);
+        newTetrominoObject.ghostCells = this.getCellsByMoving(5, ghostY, tetrominoProps);
+        newTetrominoObject.ghostPosition = [5, ghostY];
+
         this.setState({
             tetromino: newTetrominoObject,
             waitingToHold: (waitForHolding === undefined) ? false : waitForHolding
         });
+
+        changeTetrominoPosition(newTetrominoObject, [5, newTetrominoObject.position[1]], this.props.dispatch, 0, this.calculateGhostPieceY(newTetrominoObject, newTetrominoObject.position));
     }
 
     /*
@@ -214,7 +214,7 @@ class Game extends Component {
             let complete = true;
             for (let x = 0; x < WIDTH; x++) {
                 // if one cell is empty, then is not a full line
-                if (this.props.matrix[x][possibleLines[i]].tetromino === "none") {
+                if (this.props.matrix[x][possibleLines[i]] && this.props.matrix[x][possibleLines[i]].tetromino === "none") {
                     complete = false;
                     break;
                 }
@@ -231,12 +231,10 @@ class Game extends Component {
 
     }
 
-    moveTetromino(x, y) {
-        let pastPosition = this.state.tetromino.position;
-
-        // check collisions
-        let currentShape = this.state.tetromino.tetrominoProps.shape[this.state.tetromino.orientation];
-        let currentCells = this.state.tetromino.cells;
+    checkCollisionsByMoving(x, y, tetromino) {
+        let pastPosition = tetromino.position;
+        let currentShape = tetromino.tetrominoProps.shape[tetromino.orientation];
+        let currentCells = tetromino.cells;
         let canMove = true;
 
         // first check with the borders of the matrix
@@ -257,18 +255,34 @@ class Game extends Component {
                     return true;
                 return false;
             });
-            if (!contained && this.props.matrix[newX][newY].tetromino !== "none") {
+            if (!contained && this.props.matrix[newX][newY].tetromino !== "none" && !this.props.matrix[newX][newY].ghost) {
                 canMove = false;
                 return true;
             }
             return false;
         });
+        return canMove;
+    }
+
+    getCellsByMoving(x, y, tetrominoProps) {
+        let tempCells = [];
+        tetrominoProps.shape[0].forEach(coord => {
+            tempCells.push([x + coord[0], y + coord[1]]);
+        });
+        return tempCells;
+    }
+
+    moveTetromino(x, y) {
+        let pastPosition = this.state.tetromino.position;
+
+        // check collisions
+        let canMove = this.checkCollisionsByMoving(x, y, this.state.tetromino);
         if (!canMove) {
             if (y === 1) {
                 this.turnTetrominoIntoCells();
-                return;
+                return false;
             } else {
-                return;
+                return false;
             }
         }
         // after checking collisions, set new position
@@ -276,16 +290,20 @@ class Game extends Component {
         let finalY = pastPosition[1];
         finalX += x;
         finalY += y;
-
-        let cellsToChange = changeTetrominoPosition(this.state.tetromino, [finalX, finalY], this.props.dispatch);
-
+        let newPosition = [finalX, finalY];
+        let ghostY = this.calculateGhostPieceY(this.state.tetromino, newPosition);
+        let [cellsToChange, ghostCells] = changeTetrominoPosition(this.state.tetromino, newPosition, this.props.dispatch, this.state.tetromino.orientation, ghostY);
+        
         this.setState({
             tetromino: {
                 ...this.state.tetromino,
                 cells: cellsToChange,
-                position: [finalX, finalY],
+                ghostCells: ghostCells,
+                ghostPosition: [newPosition[0], ghostY],
+                position: newPosition,
             }
         });
+        return canMove;
     }
 
     rotationCalculations(newX, newY, currentCells) {
@@ -373,13 +391,16 @@ class Game extends Component {
             default:
                 break;
         }
-        let cellsToChange = changeTetrominoPosition(this.state.tetromino, newPosition, this.props.dispatch, newOrientation);
+        let ghostY = this.calculateGhostPieceY(this.state.tetromino, newPosition, newOrientation);
+        let [cellsToChange, ghostCells] = changeTetrominoPosition(this.state.tetromino, newPosition, this.props.dispatch, newOrientation, ghostY);
 
         this.setState({
             tetromino: {
                 ...this.state.tetromino,
                 position: newPosition,
                 cells: cellsToChange,
+                ghostCells: ghostCells,
+                ghostPosition: [newPosition[0], ghostY],
                 orientation: newOrientation
             }
         });
@@ -404,15 +425,46 @@ class Game extends Component {
         this.props.dispatch(holdCurrentTetromino(currentTetrominoType));
     }
 
-    handleKeyDown(event) {
-        if (this.state.gameOver)
-            return;
-        if (event.code === "KeyP") {
-            if (this.props.timer !== -1)
-                this.props.dispatch(stopTimer());
-            else
-                this.props.dispatch(startTimer(60, this.gameTick));
+    dropItHard() {
+        this.moveTetromino(0, this.state.tetromino.ghostPosition[1] - this.state.tetromino.position[1]);
+    }
+    
+    // returns the Y coordinate of the ghost piece
+    calculateGhostPieceY(tetromino, newPosition, newOrientation) {
+        let tetro;
+        if (tetromino)
+            tetro = Object.assign({}, tetromino);
+        else
+            tetro = Object.assign({}, this.state.tetromino);
+        let position = (newPosition) ? newPosition : tetro.position;
+        tetro.position = position;
+        
+        if (typeof(newOrientation) === "number") tetro.orientation = newOrientation;
+        for (let y = position[1] + 1; y <= HEIGHT; y++) {
+            if (!this.checkCollisionsByMoving(0, y - position[1], tetro)) {
+                return y - 1;
+            }
         }
+    }
+
+    handlePauseButton() {
+        if (this.state.gameOver) return;
+        if (this.props.timer !== -1) {
+            this.props.dispatch(stopTimer());
+            this.setState({
+                paused: true
+            });
+        } else {
+            this.props.dispatch(startTimer(60, this.gameTick));
+            this.setState({
+                paused: false
+            });
+        }
+    }
+
+    handleKeyDown(event) {
+        if (this.state.gameOver || this.props.timer === -1)
+            return;
         switch (event.key) {
             case ("ArrowRight"):
                 this.setState({
@@ -437,10 +489,13 @@ class Game extends Component {
                     pushDown: true
                 });
                 break;
-            case (" "):
+            case ("c" || "C"): // hold
                 if (!this.state.waitingToHold) {
                     this.holdTetromino();
                 }
+                break;
+            case (" "): // hard drop
+                this.dropItHard()
                 break;
             default:
                 break;
@@ -448,7 +503,7 @@ class Game extends Component {
     }
 
     handleKeyUp(event) {
-        if (this.props.timer === -1)
+        if (this.state.gameOver || this.props.timer === -1)
             return;
         switch (event.key) {
             case ("ArrowUp"):
@@ -469,13 +524,14 @@ class Game extends Component {
     }
 
     render() {
-        return <div id="Game">
+        return <div id="Game" className="unselectable">
             <div id="left-panel">
                 <HoldBox />
                 <StatsBox />
             </div>
             <Matrix />
             <div id="right-panel">
+                <PauseButton handler={ this.handlePauseButton } paused={ this.state.paused } />
                 <NextBox />
             </div>
         </div>;

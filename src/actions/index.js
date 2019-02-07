@@ -1,8 +1,9 @@
 // matrix
-export const changeMatrix = (cells, tetromino) => ({
+export const changeMatrix = (cells, tetromino, ghost) => ({
     type: 'CHANGE_MATRIX',
     cells: cells,
-    tetromino: tetromino
+    tetromino: tetromino,
+    ghost: ghost
 })
 
 export const copyMatrix = (newMatrix, lowerLine) => ({

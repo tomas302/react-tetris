@@ -1,32 +1,27 @@
-import React, { Component } from 'react';
+import React from 'react';
 import './StatsBox.css';
 
-class StatsBox extends Component {
-
-    render() {
+const StatsBox = (props) => {
         return <div id="StatsBox">
             <div>
                 <h3>SCORE</h3>
                 <div className="stat">
-                { this.props.score }
+                { props.score }
                 </div>
             </div>
             <div>
                 <h3>LEVEL</h3>
                 <div className="stat">
-                { this.props.level }
-                { /* the game over sequence, implement the hard drop*/ }
+                { props.level }
                 </div>
             </div>
             <div>
                 <h3>LINES</h3>
                 <div className="stat">
-                { this.props.lines }
-                { /* make it playable in mobile!*/ }
+                { props.lines }
                 </div>
             </div>
         </div>;
-    }
 }
 
 export default StatsBox;

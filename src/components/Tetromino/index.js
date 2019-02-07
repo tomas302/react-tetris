@@ -298,26 +298,32 @@ const spawnTetromino = (tetromino, newPosition, dispatch, newOrientation, matrix
 }
 
 // if called with the same position, refreshes the cells. Useful for rotating.
-const changeTetrominoPosition = (tetromino, newPosition, dispatch, newOrientation) => {
+const changeTetrominoPosition = (tetromino, newPosition, dispatch, newOrientation, ghostY) => {
     let orientation = tetromino.orientation;
     if (newOrientation !== undefined) {
         orientation = newOrientation;
     }
     let pastCells = tetromino.cells;
+    let pastGhostsCells = tetromino.ghostCells;
     let type = tetromino.type;
     let tetrominoProps = tetromino.tetrominoProps;
 
     let cellsToChange = [];
+    let ghostsCells = [];
     tetrominoProps.shape[orientation].forEach(coord => {
         cellsToChange.push([newPosition[0] + coord[0], newPosition[1] + coord[1]]);
+        ghostsCells.push([newPosition[0] + coord[0], ghostY + coord[1]]);
     });
     dispatch(changeMatrix(pastCells, "none"));
+    dispatch(changeMatrix(pastGhostsCells, "none", true));
+    dispatch(changeMatrix(ghostsCells, type, true));
     dispatch(changeMatrix(cellsToChange, type));
-    return cellsToChange;
+    return [cellsToChange, ghostsCells];
 };
 
 const cleanTetromino = (tetromino, dispatch) => {
     dispatch(changeMatrix(tetromino.cells, "none"));
+    dispatch(changeMatrix(tetromino.ghostCells, "none"));
 };
 
 export { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition, spawnTetromino, cleanTetromino };
