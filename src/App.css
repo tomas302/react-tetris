@@ -1,5 +1,5 @@
 @media screen and (min-width: 320px) and (max-width: 767px) and (orientation: landscape) {
-    html {
+    html, html:fullscreen, html:-webkit-full-screen, html:-moz-full-screen {
       transform: rotate(-90deg);
       transform-origin: left top;
       width: 100vh;
@@ -9,17 +9,7 @@
       left: 0;
     }
 
-    html:fullscreen {
-      transform: rotate(-90deg);
-      transform-origin: left top;
-      width: 100vh;
-      overflow-x: hidden;
-      position: absolute;
-      top: 100%;
-      left: 0;
+    body, body:fullscreen, body:-webkit-full-screen, body:-moz-full-screen {
+      background-color: white;
     }
-}
-
-body {
-    background-color: white;
 }

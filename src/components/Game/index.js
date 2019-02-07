@@ -89,8 +89,8 @@ class Game extends Component {
         let doubletap = ((ev) => {
             if (this.state.gameOver || this.props.timer === -1)
                 return;
-            if (!this.state.waitingToHold) {
-                this.holdTetromino();
+            if (Date.now() - this.state.timeDropped > 100) {
+                this.dropItHard()
             }
         });
         mc.on("doubletap", doubletap);
@@ -129,9 +129,10 @@ class Game extends Component {
         let longpress = ((ev) => {
             if (this.state.gameOver || this.props.timer === -1)
                 return;
-            if (Date.now() - this.state.timeDropped > 100) {
-                this.dropItHard()
+            if (!this.state.waitingToHold) {
+                this.holdTetromino();
             }
+            
         });
         mc.on("longpress", longpress);
     }
