@@ -3,20 +3,20 @@ import './StatsBox.css';
 
 const StatsBox = (props) => {
         return <div id="StatsBox">
-            <div>
-                <h3>SCORE</h3>
+            <div className="col-xs-4 col-md-12">
+                <h4>SCORE</h4>
                 <div className="stat">
                 { props.score }
                 </div>
             </div>
-            <div>
-                <h3>LEVEL</h3>
+            <div className="col-xs-4 col-md-12">
+                <h4>LEVEL</h4>
                 <div className="stat">
                 { props.level }
                 </div>
             </div>
-            <div>
-                <h3>LINES</h3>
+            <div className="col-xs-4 col-md-12">
+                <h4>LINES</h4>
                 <div className="stat">
                 { props.lines }
                 </div>

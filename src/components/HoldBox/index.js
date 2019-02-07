@@ -18,7 +18,7 @@ class HoldBox extends Component {
         
         let matrix = [];
         let width = (this.props.tetrominoHeld === "I") ? 4 : (this.props.tetrominoHeld === "O") ? 2 : 3;
-        for (let y = 0; y < 3; y++) {
+        for (let y = 0; y < 2; y++) {
             let column = [];
             for (let x = 0; x < width; x++) {
                 let tetromino = "none";

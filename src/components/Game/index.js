@@ -5,6 +5,8 @@ import NextBox from "../../containers/next";
 import HoldBox from "../../containers/hold";
 import StatsBox from "../../containers/stat";
 import PauseButton from "../PauseButton";
+import FullScreenButton from "../FullScreenButton";
+import GameOverModal from '../../containers/gameover';
 import { connect } from "react-redux";
 import { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition, spawnTetromino, cleanTetromino } from "../Tetromino/";
 import { initNextTetrominos, startTimer, loadNewTetromino, copyMatrix, stopTimer, holdCurrentTetromino } from '../../actions';
@@ -16,6 +18,8 @@ class Game extends Component {
         super(props);
 
         this.state = {
+            isMobile: (window.innerWidth < 768),
+            fullscreen: false,
             gameOver: false,
             paused: false,
             tetromino: {},
@@ -24,6 +28,7 @@ class Game extends Component {
             moveX: 0,
             pushDown: false,
             waitingToHold: false,
+            timeDropped: Date.now(),
             // in miliseconds
             lastTimeGravityWasApplied: Date.now()
         }
@@ -43,17 +48,24 @@ class Game extends Component {
         this.handlePauseButton = this.handlePauseButton.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleKeyUp = this.handleKeyUp.bind(this);
+        this.handleResize = this.handleResize.bind(this)
+        this.handleFullscreenClick = this.handleFullscreenClick.bind(this);
+        this.onFullscreenChange = this.onFullscreenChange.bind(this);
+
+        document.onfullscreenchange = this.onFullscreenChange;
     }
 
     componentDidMount() {
         this.startGame();
         document.addEventListener("keydown", this.handleKeyDown, false);
         document.addEventListener("keyup", this.handleKeyUp, false);
+        window.addEventListener("resize", this.handleResize, false);
     }
 
     componentWillUnmount() {
         document.removeEventListener("keydown", this.handleKeyDown, false);
         document.removeEventListener("keyup", this.handleKeyUp, false);
+        window.removeEventListener("resize", this.handleResize, false);
     }
 
     // Game logic
@@ -110,7 +122,7 @@ class Game extends Component {
             ghostCells: [],
             ghostPosition: [],
             tetrominoProps: tetrominoProps,
-            position: [5, (tetrominoProps.type === "O" || tetrominoProps.type === "I") ? 1 : 2],
+            position: [5, (tetrominoProps.type === "O" || tetrominoProps.type === "I") ? 0 : 1],
             orientation: 0
         };
 
@@ -426,7 +438,15 @@ class Game extends Component {
     }
 
     dropItHard() {
-        this.moveTetromino(0, this.state.tetromino.ghostPosition[1] - this.state.tetromino.position[1]);
+        let dropAmount = this.state.tetromino.ghostPosition[1] - this.state.tetromino.position[1];
+        this.moveTetromino(0, dropAmount);
+        // for triggering the next tetromino
+        this.moveTetromino(0, 1);
+        let score = dropAmount * this.props.level;
+        this.props.dispatch(addScore(score));
+        this.setState({
+            timeDropped: Date.now()
+        });
     }
     
     // returns the Y coordinate of the ghost piece
@@ -495,7 +515,9 @@ class Game extends Component {
                 }
                 break;
             case (" "): // hard drop
-                this.dropItHard()
+                if (Date.now() - this.state.timeDropped > 100) {
+                    this.dropItHard()
+                }
                 break;
             default:
                 break;
@@ -523,18 +545,61 @@ class Game extends Component {
         }
     }
 
+    handleResize() {
+        if(window.innerWidth < 768) {
+            this.setState({ isMobile: true });
+        } else {
+            this.setState({ isMobile: false });
+        }
+    }
+
+    handleFullscreenClick() {
+        if (!this.state.fullscreen)
+            document.body.requestFullscreen()
+        else
+            document.exitFullscreen()
+    }
+
+    onFullscreenChange(event) {
+        this.setState({
+            fullscreen: !this.state.fullscreen
+        });
+    }
+
     render() {
-        return <div id="Game" className="unselectable">
-            <div id="left-panel">
-                <HoldBox />
-                <StatsBox />
+        if (this.state.isMobile) {
+            return <div id="Game" className="unselectable container">
+            <div id="Panel" className="col-xs-12 col-md-3">
+                <div className="col-xs-2 col-md-12" id="left-panel">
+                    <HoldBox />
+                    <div>
+                        <PauseButton handler={ this.handlePauseButton } paused={ this.state.paused } />
+                        <FullScreenButton fullscreen={ this.state.fullscreen } handler={ this.handleFullscreenClick } />
+                    </div>
+                </div>
+                <div className="col-xs-8 col-md-12">
+                    <StatsBox />
+                    <NextBox />
+                </div>
             </div>
-            <Matrix />
-            <div id="right-panel">
-                <PauseButton handler={ this.handlePauseButton } paused={ this.state.paused } />
-                <NextBox />
+            <div className="col-xs-12 col-md-5" style={ {display: 'flex', justifyContent: 'center'} }>
+                <Matrix />
             </div>
+            <GameOverModal ariaHideApp={false} gameOver={ this.state.gameOver } restartGameHandler={ this.restartGame } backHandler={ this.returnToStartMenu } />
         </div>;
+        } else {
+            return <div id="Game" className="unselectable">
+                <div id="left-panel">
+                    <HoldBox />
+                    <StatsBox />
+                </div>
+                <Matrix />
+                <div id="right-panel">
+                    <PauseButton handler={ this.handlePauseButton } paused={ this.state.paused } />
+                    <NextBox />
+                </div>
+            </div>;
+        }
     }
 }
 

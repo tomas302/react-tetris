@@ -1,10 +1,8 @@
-@media only screen and (min-width: 750px)  {
+@media only screen and (min-width: 768px)  {
     #StatsBox {
         background-color: black;
         color: white;
-        padding: 1px 30px 30px 30px;
-        width: 112px;
-        height: 250px;
+        padding: 15px 30px 30px 30px;
         border-radius: 10px;
     }
 
@@ -16,6 +14,35 @@
         color: black;
         padding-top: 2px;
         padding-bottom: 2px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+    }
+}
+
+@media only screen and (max-width: 767px)  {
+    #StatsBox {
+        background-color: #FF1010;
+        color: black;
+        padding: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #StatsBox > div > h4 {
+        font-size: 18px;
+    }
+
+    #StatsBox > div {
+        padding: 5px;
+    }
+
+    .stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: white;
+        color: black;
         border-radius: 5px;
     }
 }

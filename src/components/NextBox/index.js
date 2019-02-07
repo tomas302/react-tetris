@@ -17,7 +17,7 @@ class NextBox extends Component {
             let cells = [];
             let shape = getTetrominoProperties(this.props.nextTetrominos[i]).shape[2];
             let size = (this.props.nextTetrominos[i] === "I") ? 4 : (this.props.nextTetrominos[i] === "O") ? 2 : 3;
-            for (let y = 0; y < ((size === 4) ? 3: size); y++) {
+            for (let y = 1; y < 3; y++) {
                 for (let x = 0; x < size; x++) {
                     let print = false;
                     if (size === 3) {

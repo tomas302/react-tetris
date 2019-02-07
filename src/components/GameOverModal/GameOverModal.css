@@ -1,0 +1,23 @@
+@media only screen and (min-width: 768px)  {
+
+    .GameOverModal > button {
+        position: absolute;
+        top: calc(50% -  71px);
+        left: calc(50% - 211px);
+        font-size: 80px;
+        background-color: lime;
+        padding: 15px 30px 15px 30px;
+        border: 10px solid black;
+        width: 422px;
+        height: 142px;
+    }
+
+    .GameOverOverlay {
+        position: fixed;
+        top: 0px;
+        left: 0px;
+        right: 0px;
+        bottom: 0px;
+        background-color: rgba(255, 255, 255, 0.45);
+    }
+}
