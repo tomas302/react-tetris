@@ -6,7 +6,7 @@
         border-radius: 5px;
         padding: 5px 15px 5px 15px;
         display: inline-block;
-        margin-bottom: 50px;
+        margin-bottom: 20px;
     }
 
     .paused {
@@ -47,7 +47,7 @@
         font-size: 25px;
         background-color: #333;
         color: #FFF;
-        padding: 6px 10px 7px 10px;
+        padding: 6px 15px 7px 15px;
         float: right;
     }
 

@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './Game.css';
+import ControlInformation from '../ControlInformation';
 import Matrix from "../../containers/matrix";
 import NextBox from "../../containers/next";
 import HoldBox from "../../containers/hold";
@@ -20,6 +21,7 @@ class Game extends Component {
         super(props);
 
         this.state = {
+            running: false,
             isMobile: (window.innerWidth < 768),
             fullscreen: false,
             gameOver: false,
@@ -59,7 +61,6 @@ class Game extends Component {
     }
 
     componentDidMount() {
-        this.startGame();
         document.addEventListener("keydown", this.handleKeyDown, false);
         document.addEventListener("keyup", this.handleKeyUp, false);
         window.addEventListener("resize", this.handleResize, false);
@@ -73,24 +74,26 @@ class Game extends Component {
 
     // Game logic
     startGame() {
+        if (this.state.running) return;
+        this.setState({
+            running: true
+        });
         this.props.dispatch(initNextTetrominos());
         this.spawnNextTetromino();
         this.props.dispatch(startTimer(20, this.gameTick));
     }
 
     listenForGestures(matrixDOM) {
-        let mc = new Hammer.Manager(matrixDOM);
-        mc.add(new Hammer.Tap({ event: 'doubletap', taps: 2 }));
+        let mc = new Hammer(matrixDOM);
         mc.add(new Hammer.Swipe({ event: 'swipeup', direction: Hammer.DIRECTION_UP }));
         mc.add(new Hammer.Swipe({ event: 'swipeleft', direction: Hammer.DIRECTION_LEFT }));
         mc.add(new Hammer.Swipe({ event: 'swiperight', direction: Hammer.DIRECTION_RIGHT }));
         mc.add(new Hammer.Swipe({ event: 'swipedown', direction: Hammer.DIRECTION_DOWN }));
-        mc.add(new Hammer.Press({ event: 'longpress' }));
         let doubletap = ((ev) => {
             if (this.state.gameOver || this.props.timer === -1)
                 return;
-            if (Date.now() - this.state.timeDropped > 100) {
-                this.dropItHard()
+            if (!this.state.waitingToHold) {
+                this.holdTetromino();
             }
         });
         mc.on("doubletap", doubletap);
@@ -121,20 +124,27 @@ class Game extends Component {
         let swipedown = ((ev) => {
             if (this.state.gameOver || this.props.timer === -1)
                 return;
+            if (Date.now() - this.state.timeDropped > 100) {
+                this.dropItHard()
+            }
+        });
+        mc.on("swipedown", swipedown);
+        let press = ((ev) => {
+            if (this.state.gameOver || this.props.timer === -1)
+                return;
             this.setState({
                 pushDown: true
             });
         });
-        mc.on("swipedown", swipedown);
-        let longpress = ((ev) => {
+        mc.on("press", press);
+        let pressup = ((ev) => {
             if (this.state.gameOver || this.props.timer === -1)
                 return;
-            if (!this.state.waitingToHold) {
-                this.holdTetromino();
-            }
-            
+            this.setState({
+                pushDown: false
+            });
         });
-        mc.on("longpress", longpress);
+        mc.on("pressup", pressup);
     }
 
     gameTick() {
@@ -159,17 +169,13 @@ class Game extends Component {
         if (this.state.pushDown) {
             this.props.dispatch(addScore(this.props.level));
             this.moveTetromino(0, 1);
-            if (this.state.isMobile) {
-                this.setState({
-                    pushDown: false
-                });
-            }
         }
     }
 
     gameOver() {
         this.props.dispatch(stopTimer());
         this.setState({
+            running: false,
             gameOver: true
         });
         // freeze game and open a new dialog
@@ -302,6 +308,12 @@ class Game extends Component {
         }
         if (completedLines.length !== 0) {
             this.linesAchieved(completedLines.sort());
+        }
+
+        if (this.state.isMobile && this.state.pushDown) {
+            this.setState({
+                pushDown: false
+            });
         }
 
         this.spawnNextTetromino(this.props.nextTetromino);
@@ -633,6 +645,22 @@ class Game extends Component {
     }
 
     render() {
+        if (!this.state.running && !this.state.gameOver) {
+            return <div id="Start" className="unselectable container" style={{ maxWidth: "unset", backgroundColor: '#2B3991' }}>
+                <div className="col-xs-12" style={{ textAlign: 'center' }}>
+                    <h1 id="Title">
+                        <p style={{ color: "red", display: "inline" }}>t</p>
+                        <p style={{ color: "rgb(224, 146, 0)", display: "inline" }}>e</p>
+                        <p style={{ color: "yellow", display: "inline" }}>t</p>
+                        <p style={{ color: "lime", display: "inline" }}>r</p>
+                        <p style={{ color: "cyan", display: "inline" }}>i</p>
+                        <p style={{ color: "purple", display: "inline" }}>s</p>
+                    </h1>
+                    <button id="StartButton" className="btn btn-success" onClick={this.startGame} >START</button>
+                    <ControlInformation isMobile={ this.state.isMobile } />
+                </div>
+            </div>;
+        }
         if (this.state.isMobile) {
             return <div id="Game" className="unselectable container">
                 <div id="Panel" className="col-xs-12 col-md-3">
@@ -661,8 +689,12 @@ class Game extends Component {
                 </div>
                 <Matrix gestureListener={this.listenForGestures} ref={this._matrix} />
                 <div id="right-panel">
-                    <PauseButton handler={this.handlePauseButton} paused={this.state.paused} />
-                    <NextBox />
+                    <div className="row">
+                        <PauseButton handler={this.handlePauseButton} paused={this.state.paused} />
+                    </div>
+                    <div className="row">
+                        <NextBox />
+                    </div>
                 </div>
             </div>;
         }

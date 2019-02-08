@@ -1,0 +1,10 @@
+@media only screen and (max-width: 767px)  {
+    #FullScreenButton {
+        font-size: 25px;
+        background-color: #AAA;
+        color: black;
+        padding: 6px 15px 7px 15px;
+        float: right;
+        border: none;
+    }
+}

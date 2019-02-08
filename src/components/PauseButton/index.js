@@ -24,7 +24,7 @@ class PauseButton extends React.Component {
         let text = "";
         let icon;
         if (this.props.paused) {
-            text = "PAUSED";
+            text = <i class="fas fa-play"></i>;
         } else {
             icon = <i id="PauseIcon" className="fas fa-pause"></i>;
         }

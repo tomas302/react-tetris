@@ -8,10 +8,11 @@ import rootReducer from './reducers/'
 const store = createStore(rootReducer);
 
 class App extends Component {
+
   render() {
     return (
       <Provider store={store}>
-        <div className="App">
+        <div id="App">
           <Game />
         </div>
       </Provider>

@@ -1,0 +1,16 @@
+#ControlInformation {
+    font-size: 14px;
+    color: black;
+    margin-top: 30px;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: rgb(109, 125, 226);
+    border: 5px solid orange;
+}
+
+#ControlInformation > ul {
+    color: white;
+    list-style-type: none;
+    font-weight: bold;
+    padding: 0px;
+}

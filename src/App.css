@@ -13,3 +13,7 @@
       background-color: white;
     }
 }
+
+#Game {
+  background: url("./background.png") repeat;
+}
