@@ -67,11 +67,11 @@
 @media only screen and (max-width: 767px)  {
     #Title {
         font-family: 'Tetris';
-        font-size: 100px;
+        font-size: 120px;
     }
     
     #StartButton {
-        font-size: 50px;
+        font-size: 20px;
         color: white;
         padding-right: 45px;
         padding-left: 45px;

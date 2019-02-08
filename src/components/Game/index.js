@@ -7,6 +7,7 @@ import HoldBox from "../../containers/hold";
 import StatsBox from "../../containers/stat";
 import PauseButton from "../PauseButton";
 import FullScreenButton from "../FullScreenButton";
+import VolumeButton from '../VolumeButton';
 import GameOverModal from '../../containers/gameover';
 import { connect } from "react-redux";
 import { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition, spawnTetromino, cleanTetromino } from "../Tetromino/";
@@ -20,12 +21,15 @@ class Game extends Component {
     constructor(props) {
         super(props);
 
+        let storage = localStorage.getItem("reactTetris") ? JSON.parse(localStorage.getItem("reactTetris")) : { mute: false, leaderboard: [] };
         this.state = {
+            storage: storage,
             running: false,
             isMobile: (window.innerWidth < 768),
             fullscreen: false,
             gameOver: false,
             paused: false,
+            mute: storage.mute,
             tetromino: {},
             rotate: false,
             canRotate: true,
@@ -36,6 +40,8 @@ class Game extends Component {
             // in miliseconds
             lastTimeGravityWasApplied: Date.now()
         }
+
+        this._music = React.createRef();
 
         this.startGame = this.startGame.bind(this);
         this.listenForGestures = this.listenForGestures.bind(this);
@@ -56,6 +62,7 @@ class Game extends Component {
         this.handleResize = this.handleResize.bind(this)
         this.handleFullscreenClick = this.handleFullscreenClick.bind(this);
         this.onFullscreenChange = this.onFullscreenChange.bind(this);
+        this.switchMute = this.switchMute.bind(this);
 
         document.onfullscreenchange = this.onFullscreenChange;
     }
@@ -64,6 +71,10 @@ class Game extends Component {
         document.addEventListener("keydown", this.handleKeyDown, false);
         document.addEventListener("keyup", this.handleKeyUp, false);
         window.addEventListener("resize", this.handleResize, false);
+        let beforeLeaving = () => {
+            localStorage.setItem('reactTetris', JSON.stringify(this.state.storage));
+        };
+        window.onunload = beforeLeaving;
     }
 
     componentWillUnmount() {
@@ -71,6 +82,8 @@ class Game extends Component {
         document.removeEventListener("keyup", this.handleKeyUp, false);
         window.removeEventListener("resize", this.handleResize, false);
     }
+
+    
 
     // Game logic
     startGame() {
@@ -644,9 +657,16 @@ class Game extends Component {
         });
     }
 
+    switchMute(event) {
+        this.setState({
+            storage: { mute: !this.state.mute },
+            mute: !this.state.mute
+        });
+    }
+
     render() {
         if (!this.state.running && !this.state.gameOver) {
-            return <div id="Start" className="unselectable container" style={{ maxWidth: "unset", backgroundColor: '#2B3991' }}>
+            return <div id="Start" className="unselectable container" style={{ maxWidth: "unset", backgroundColor: '#4c64ff' }}>
                 <div className="col-xs-12" style={{ textAlign: 'center' }}>
                     <h1 id="Title">
                         <p style={{ color: "red", display: "inline" }}>t</p>
@@ -654,20 +674,29 @@ class Game extends Component {
                         <p style={{ color: "yellow", display: "inline" }}>t</p>
                         <p style={{ color: "lime", display: "inline" }}>r</p>
                         <p style={{ color: "cyan", display: "inline" }}>i</p>
-                        <p style={{ color: "purple", display: "inline" }}>s</p>
+                        <p style={{ color: "#d800d8", display: "inline" }}>s</p>
                     </h1>
                     <button id="StartButton" className="btn btn-success" onClick={this.startGame} >START</button>
-                    <ControlInformation isMobile={ this.state.isMobile } />
+                    <ControlInformation isMobile={ this.state.isMobile } ariaHideApp={false} />
                 </div>
             </div>;
         }
+        if (this._music.current !== null) {
+            if (this._music.current.paused & !this.state.mute) {
+                this._music.current.play();
+            } else if (!this._music.current.paused & this.state.mute)  {
+                this._music.current.pause();
+            }
+        }
         if (this.state.isMobile) {
             return <div id="Game" className="unselectable container">
+                <audio ref={ this._music } src="./soundtrack.mp3" loop={true} />
                 <div id="Panel" className="col-xs-12 col-md-3">
                     <div className="col-xs-2 col-md-12" id="left-panel">
                         <HoldBox />
                         <div>
                             <PauseButton handler={this.handlePauseButton} paused={this.state.paused} />
+                            <VolumeButton mute={ this.state.mute } handler={ this.switchMute } />
                             <FullScreenButton fullscreen={this.state.fullscreen} handler={this.handleFullscreenClick} />
                         </div>
                     </div>
@@ -683,6 +712,7 @@ class Game extends Component {
             </div>;
         } else {
             return <div id="Game" className="unselectable">
+                <audio ref={ this._music } src="./soundtrack.mp3" loop={true} />
                 <div id="left-panel">
                     <HoldBox />
                     <StatsBox />
@@ -691,6 +721,7 @@ class Game extends Component {
                 <div id="right-panel">
                     <div className="row">
                         <PauseButton handler={this.handlePauseButton} paused={this.state.paused} />
+                        <VolumeButton mute={ this.state.mute } handler={ this.switchMute } />
                     </div>
                     <div className="row">
                         <NextBox />
