@@ -9,11 +9,21 @@ const store = createStore(rootReducer);
 
 class App extends Component {
 
+  constructor(props) {
+    super(props);
+    
+    this.backToStartScreen = this.backToStartScreen.bind(this);
+  }
+  
+  backToStartScreen() {
+    this.forceUpdate();
+  }
+
   render() {
     return (
       <Provider store={store}>
         <div id="App">
-          <Game />
+          <Game key={ store.getState().gameKey } backToStartScreen={ this.backToStartScreen } />
         </div>
       </Provider>
     );

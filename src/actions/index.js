@@ -1,3 +1,9 @@
+// game
+export const resetGameState = (gameKey) => ({
+    type: 'RESET_GAME_STATE',
+    gameKey: gameKey
+})
+
 // matrix
 export const changeMatrix = (cells, tetromino, ghost) => ({
     type: 'CHANGE_MATRIX',

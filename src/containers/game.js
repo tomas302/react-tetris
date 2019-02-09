@@ -3,6 +3,7 @@ import Game from '../components/Game';
 
 function mapStateToProps(store){
     return {
+        gameKey: store.gameKey,
         matrix: store.matrix,
         nextTetromino: store.nextTetrominos[0],
         timer: store.timer,

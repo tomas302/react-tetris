@@ -7,17 +7,16 @@ class GameOverModal extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handler = this.handler.bind(this);
-        this.handleCloseModal = this.handleCloseModal.bind(this);
+        this.handlePlayAgain = this.handlePlayAgain.bind(this);
+        this.handleStartScreen = this.handleStartScreen.bind(this);
     }
 
-    handler() {
-        if (!this.props.paused)
-            this.props.handler();
+    handlePlayAgain() {
+        this.props.restartGameHandler();
     }
 
-    handleCloseModal(event) {
-        this.props.handler(event);
+    handleStartScreen() {
+        this.props.startScreenHandler();
     }
 
     render() {
@@ -26,6 +25,7 @@ class GameOverModal extends React.Component {
         }
         return <div id="GameOver" className={ "" } onClick={ this.handler }>
             <ReactModal
+                ariaHideApp={false}
                 isOpen={this.props.gameOver}
                 contentLabel="GAME OVER"
                 className="GameOverModal"
@@ -40,8 +40,8 @@ class GameOverModal extends React.Component {
                     { this.props.level }
                     { this.props.lines }
                 </p>
-                <button className={ "unselectable" } onClick={this.handleCloseModal}>PLAY AGAIN</button>
-                <button className={ "unselectable" } onClick={this.handleCloseModal}>BACK</button>
+                <button className={ "unselectable" } onClick={this.handlePlayAgain}>PLAY AGAIN</button>
+                <button className={ "unselectable" } onClick={this.handleStartScreen}>BACK</button>
             </ReactModal>
         </div>;
     }

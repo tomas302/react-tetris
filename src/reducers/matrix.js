@@ -2,18 +2,24 @@ import { WIDTH, HEIGHT } from '../constants';
 
 
 // 2D array containing all the cells in the Matrix. It has the form 'cells[x][y]'
-const initialMatrix = [];
-for (let x = 0; x < WIDTH; x++) {
-    let column = [];
-    for (let y = 0; y < HEIGHT; y++) {
-        column.push({ tetromino: 'none' });
+const getInitialMatrix = () => {
+    let initialMatrix = [];
+    for (let x = 0; x < WIDTH; x++) {
+        let column = [];
+        for (let y = 0; y < HEIGHT; y++) {
+            column.push({ tetromino: 'none' });
+        }
+        initialMatrix.push(column);
     }
-    initialMatrix.push(column);
-}
+    return initialMatrix;
+};
 
-const matrix = (state = initialMatrix, action) => {
+
+const matrix = (state = getInitialMatrix(), action) => {
     let newMatrix;
     switch(action.type) {
+        case 'RESET_GAME_STATE':
+            return getInitialMatrix();
         case 'CHANGE_MATRIX':
             newMatrix = Object.assign({}, state);
             for (let i = 0; i < action.cells.length; i++) {

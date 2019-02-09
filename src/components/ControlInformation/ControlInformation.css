@@ -16,12 +16,29 @@
     padding: 0px;
 }
 
-#OpenControlsButton {
-    font-size: 15px;
-    color: black;
+@media only screen and (min-width: 768px)  {
+    #OpenControlsButton {
+        font-size: 26px;
+        color: black;
+        font-weight: bold;
+    }
+}
+
+@media only screen and (max-width: 767px)  {
+    #OpenControlsButton {
+        color: black;
+        font-weight: bold;
+    }
+
+    .start-screen {
+        font-size: 15px !important;
+    }
+}
+
+.start-screen {
+    margin-top: 60px;
     padding-right: 45px;
     padding-left: 45px;
-    margin-top: 60px;
 }
 
 #CloseControlsButton {
@@ -30,6 +47,7 @@
     padding-right: 45px;
     padding-left: 45px;
     margin-top: 15px;
+    font-weight: bold;
 }
 
 .ControlsOverlay {
@@ -45,7 +63,6 @@
 }
 
 .ControlsModal {
-    background-color: transparent;
     background-color: white;
     padding: 0px 25px 25px 25px;
     display: flex;

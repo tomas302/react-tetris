@@ -11,7 +11,7 @@ import VolumeButton from '../VolumeButton';
 import GameOverModal from '../../containers/gameover';
 import { connect } from "react-redux";
 import { getRandomTetromino, getTetrominoProperties, changeTetrominoPosition, spawnTetromino, cleanTetromino } from "../Tetromino/";
-import { initNextTetrominos, startTimer, loadNewTetromino, copyMatrix, stopTimer, holdCurrentTetromino } from '../../actions';
+import { initNextTetrominos, startTimer, loadNewTetromino, copyMatrix, stopTimer, holdCurrentTetromino, resetGameState } from '../../actions';
 import { addScore, addLines, reduceGravity } from '../../actions';
 import { WIDTH, HEIGHT } from '../../constants';
 // gesture library
@@ -30,6 +30,7 @@ class Game extends Component {
             gameOver: false,
             paused: false,
             mute: storage.mute,
+            showingControls: false,
             tetromino: {},
             rotate: false,
             canRotate: true,
@@ -43,9 +44,14 @@ class Game extends Component {
 
         this._music = React.createRef();
 
+        // game life cycle methods
         this.startGame = this.startGame.bind(this);
         this.listenForGestures = this.listenForGestures.bind(this);
         this.gameTick = this.gameTick.bind(this);
+        this.gameOver = this.gameOver.bind(this);
+        this.returnToStartMenu = this.returnToStartMenu.bind(this);
+
+        // core game methods
         this.spawnNextTetromino = this.spawnNextTetromino.bind(this);
         this.linesAchieved = this.linesAchieved.bind(this);
         this.turnTetrominoIntoCells = this.turnTetrominoIntoCells.bind(this);
@@ -56,6 +62,8 @@ class Game extends Component {
         this.holdTetromino = this.holdTetromino.bind(this);
         this.dropItHard = this.dropItHard.bind(this);
         this.calculateGhostPieceY = this.calculateGhostPieceY.bind(this);
+
+        // handlers
         this.handlePauseButton = this.handlePauseButton.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleKeyUp = this.handleKeyUp.bind(this);
@@ -63,6 +71,7 @@ class Game extends Component {
         this.handleFullscreenClick = this.handleFullscreenClick.bind(this);
         this.onFullscreenChange = this.onFullscreenChange.bind(this);
         this.switchMute = this.switchMute.bind(this);
+        this.switchControls = this.switchControls.bind(this);
 
         document.onfullscreenchange = this.onFullscreenChange;
     }
@@ -83,7 +92,7 @@ class Game extends Component {
         window.removeEventListener("resize", this.handleResize, false);
     }
 
-    
+
 
     // Game logic
     startGame() {
@@ -94,6 +103,7 @@ class Game extends Component {
         this.props.dispatch(initNextTetrominos());
         this.spawnNextTetromino();
         this.props.dispatch(startTimer(20, this.gameTick));
+        console.log(this.state);
     }
 
     listenForGestures(matrixDOM) {
@@ -191,9 +201,18 @@ class Game extends Component {
             running: false,
             gameOver: true
         });
-        // freeze game and open a new dialog
+        // freeze game and open a new dialog -> DONE
         // show score and maybe implement a leaderboard
         // give the choice to play again or go to the main menu
+    }
+
+    returnToStartMenu() {
+        if (!this.state.running) return;
+        this.setState({
+            running: false
+        });
+        this.props.dispatch(resetGameState(this.props.gameKey));
+        this.props.backToStartScreen();
     }
 
     spawnNextTetromino(next, waitForHolding) {
@@ -284,7 +303,7 @@ class Game extends Component {
         let currentLevel = this.props.level;
         this.props.dispatch(addLines(completedLines.length));
         if (this.props.level !== currentLevel) {
-            this.props.dispatch(reduceGravity(150));
+            this.props.dispatch(reduceGravity(Math.floor(200 * (1 / (currentLevel * 0.65)))));
         }
     }
 
@@ -651,16 +670,22 @@ class Game extends Component {
             document.exitFullscreen()
     }
 
-    onFullscreenChange(event) {
+    onFullscreenChange() {
         this.setState({
             fullscreen: !this.state.fullscreen
         });
     }
 
-    switchMute(event) {
+    switchMute() {
         this.setState({
-            storage: { mute: !this.state.mute },
+            storage: { ...this.state.storage, mute: !this.state.mute },
             mute: !this.state.mute
+        });
+    }
+
+    switchControls() {
+        this.setState({
+            showingControls: !this.state.showingControls
         });
     }
 
@@ -677,26 +702,40 @@ class Game extends Component {
                         <p style={{ color: "#d800d8", display: "inline" }}>s</p>
                     </h1>
                     <button id="StartButton" className="btn btn-success" onClick={this.startGame} >START</button>
-                    <ControlInformation isMobile={ this.state.isMobile } ariaHideApp={false} />
+                    <ControlInformation startScreen={true} isMobile={this.state.isMobile} open={this.state.showingControls} handler={this.switchControls} />
                 </div>
             </div>;
         }
         if (this._music.current !== null) {
             if (this._music.current.paused & !this.state.mute) {
                 this._music.current.play();
-            } else if (!this._music.current.paused & this.state.mute)  {
+            } else if (!this._music.current.paused & this.state.mute) {
                 this._music.current.pause();
             }
         }
+        let pauseButton = <PauseButton
+            paused={this.state.paused}
+            handler={this.handlePauseButton}
+            isMobile={this.state.isMobile}
+            controlHandler={this.switchControls}
+            openControls={this.state.showingControls}
+            backToStart={this.returnToStartMenu}
+        />;
+
+        let gameOverModal = <GameOverModal
+            gameOver={this.state.gameOver}
+            restartGameHandler={this.restartGame}
+            startScreenHandler={this.returnToStartMenu}
+        />;
         if (this.state.isMobile) {
             return <div id="Game" className="unselectable container">
-                <audio ref={ this._music } src="./soundtrack.mp3" loop={true} />
+                <audio ref={this._music} src="./soundtrack.mp3" loop={true} />
                 <div id="Panel" className="col-xs-12 col-md-3">
                     <div className="col-xs-2 col-md-12" id="left-panel">
                         <HoldBox />
                         <div>
-                            <PauseButton handler={this.handlePauseButton} paused={this.state.paused} />
-                            <VolumeButton mute={ this.state.mute } handler={ this.switchMute } />
+                            {pauseButton}
+                            <VolumeButton mute={this.state.mute} handler={this.switchMute} />
                             <FullScreenButton fullscreen={this.state.fullscreen} handler={this.handleFullscreenClick} />
                         </div>
                     </div>
@@ -708,11 +747,11 @@ class Game extends Component {
                 <div className="col-xs-12 col-md-5" style={{ display: 'flex', justifyContent: 'center' }}>
                     <Matrix gestureListener={this.listenForGestures} ref={this._matrix} />
                 </div>
-                <GameOverModal ariaHideApp={false} gameOver={this.state.gameOver} restartGameHandler={this.restartGame} backHandler={this.returnToStartMenu} />
+                { gameOverModal }
             </div>;
         } else {
             return <div id="Game" className="unselectable">
-                <audio ref={ this._music } src="./soundtrack.mp3" loop={true} />
+                <audio ref={this._music} src="./soundtrack.mp3" loop={true} />
                 <div id="left-panel">
                     <HoldBox />
                     <StatsBox />
@@ -720,13 +759,14 @@ class Game extends Component {
                 <Matrix gestureListener={this.listenForGestures} ref={this._matrix} />
                 <div id="right-panel">
                     <div className="row">
-                        <PauseButton handler={this.handlePauseButton} paused={this.state.paused} />
-                        <VolumeButton mute={ this.state.mute } handler={ this.switchMute } />
+                        {pauseButton}
+                        <VolumeButton mute={this.state.mute} handler={this.switchMute} />
                     </div>
                     <div className="row">
                         <NextBox />
                     </div>
                 </div>
+                { gameOverModal }
             </div>;
         }
     }

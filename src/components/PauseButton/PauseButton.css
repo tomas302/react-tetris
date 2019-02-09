@@ -19,27 +19,6 @@
     .paused > #PauseIcon {
         padding-right: 10px;
     }
-
-    .PauseModal > button {
-        position: absolute;
-        top: calc(50% -  71px);
-        left: calc(50% - 211px);
-        font-size: 80px;
-        background-color: lime;
-        padding: 15px 30px 15px 30px;
-        border: 10px solid black;
-        width: 422px;
-        height: 142px;
-    }
-
-    .PauseOverlay {
-        position: fixed;
-        top: 0px;
-        left: 0px;
-        right: 0px;
-        bottom: 0px;
-        background-color: rgba(255, 255, 255, 0.45);
-    }
 }
 
 @media only screen and (max-width: 767px)  {
@@ -62,25 +41,40 @@
     .paused > #PauseIcon {
         padding-right: 10px;
     }
+}
 
-    .PauseModal > button {
-        position: absolute;
-        top: calc(50% -  71px);
-        left: calc(50% - 211px);
-        font-size: 80px;
-        background-color: lime;
-        padding: 15px 30px 15px 30px;
-        border: 10px solid black;
-        width: 422px;
-        height: 142px;
-    }
+.PauseOverlay {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background-color: rgba(255, 255, 255, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-    .PauseOverlay {
-        position: fixed;
-        top: 0px;
-        left: 0px;
-        right: 0px;
-        bottom: 0px;
-        background-color: rgba(255, 255, 255, 0.45);
-    }
+.PauseModal {
+    background-color: white;
+    padding: 15px 25px 25px 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: 4px solid black;
+    border-radius: 5px;
+}
+
+#PauseButtonGroup {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#PauseButtonGroup > button, #PauseButtonGroup > div > button {
+    font-size: 30px;
+    color: black;
+    font-weight: bold;
+    margin: 7px;
 }
