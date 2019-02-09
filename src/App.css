@@ -11,6 +11,7 @@
 
     body, body:fullscreen, body:-webkit-full-screen, body:-moz-full-screen {
       background-color: white;
+      touch-action: manipulation;
     }
 }
 

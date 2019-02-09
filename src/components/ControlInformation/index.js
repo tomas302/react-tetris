@@ -20,18 +20,7 @@ class ControlInformation extends React.Component {
 
     render() {
         let controls;
-        if (this.props.isMobile) {
-            controls = <div id="ControlInformation">
-                <h3><u>HOW TO PLAY</u></h3>
-                <ul>
-                    <li>MOVE: Swipe right and left</li>
-                    <li>ROTATE: Swipe up</li>
-                    <li>FALL FASTER: Hold the screen</li>
-                    <li>HARD DROP: Swipe down</li>
-                    <li>HOLD: Double tap</li>
-                </ul>
-            </div>;
-        } else {
+        if (!this.props.isMobile) {
             controls = <div id="ControlInformation">
                 <h3><u>HOW TO PLAY</u></h3>
                 <ul>
@@ -42,6 +31,8 @@ class ControlInformation extends React.Component {
                     <li>HOLD: C</li>
                 </ul>
             </div>;
+        } else {
+            return <React.Fragment></React.Fragment>
         }
         
         let openButton;

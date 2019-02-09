@@ -129,6 +129,21 @@
         flex-direction: column;
         align-items: flex-end;
     }
+
+    #MobileControls {
+        display: flex;
+        justify-content: center;
+        font-size: 30px !important;
+    }
+
+    #MobileControls > button {
+        border-radius: 5px !important;
+        width: 55px !important;
+        margin: 2px !important;
+        touch-action: manipulation  !important;
+        font-size: 28px !important;
+        border: 2px solid black
+    }
 }
 
 .unselectable {

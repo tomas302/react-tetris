@@ -31,17 +31,16 @@ class GameOverModal extends React.Component {
                 className="GameOverModal"
                 overlayClassName="GameOverOverlay"
             >
-            <div className={ "container" }>
-
-            </div>
                 <b>GAME OVER</b>
                 <p>
                     { this.props.score }
                     { this.props.level }
                     { this.props.lines }
                 </p>
-                <button className={ "unselectable" } onClick={this.handlePlayAgain}>PLAY AGAIN</button>
-                <button className={ "unselectable" } onClick={this.handleStartScreen}>BACK</button>
+                <div id="GameOverButtonGroup">
+                    <button className={ "unselectable btn btn-success" } onClick={this.handlePlayAgain}><i className="fas fa-redo-alt"></i></button>
+                    <button className={ "unselectable btn btn-secondary" } onClick={this.handleStartScreen}><i className="fas fa-home"></i></button>
+                </div>
             </ReactModal>
         </div>;
     }

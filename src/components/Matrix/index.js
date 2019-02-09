@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
+//import ReactDOM from 'react-dom';
 import Cell from '../../containers/cell';
 
 import { WIDTH, HEIGHT } from '../../constants';
@@ -23,9 +23,9 @@ class Matrix extends Component {
         this.state.matrix = initialMatrix;
     }
 
-    componentDidMount() {
+    /*componentDidMount() {
         this.props.gestureListener(ReactDOM.findDOMNode(this));
-    }
+    }*/
 
 
     render() {

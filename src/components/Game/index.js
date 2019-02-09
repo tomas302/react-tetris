@@ -37,6 +37,7 @@ class Game extends Component {
             moveX: 0,
             pushDown: false,
             waitingToHold: false,
+            dropHard: false,
             timeDropped: Date.now(),
             // in miliseconds
             lastTimeGravityWasApplied: Date.now()
@@ -145,9 +146,9 @@ class Game extends Component {
         let swipedown = ((ev) => {
             if (this.state.gameOver || this.props.timer === -1)
                 return;
-            if (Date.now() - this.state.timeDropped > 100) {
-                this.dropItHard()
-            }
+            this.setState({
+                dropHard: true
+            });
         });
         mc.on("swipedown", swipedown);
         let press = ((ev) => {
@@ -166,6 +167,7 @@ class Game extends Component {
             });
         });
         mc.on("pressup", pressup);
+        this._mc = mc;
     }
 
     gameTick() {
@@ -191,6 +193,12 @@ class Game extends Component {
             this.props.dispatch(addScore(this.props.level));
             this.moveTetromino(0, 1);
         }
+        if (this.state.dropHard) {
+            this.dropItHard();
+            this.setState({
+                dropHard: false
+            });
+        }
     }
 
     gameOver() {
@@ -209,6 +217,8 @@ class Game extends Component {
         this.setState({
             running: false
         });
+        localStorage.setItem('reactTetris', JSON.stringify(this.state.storage));
+        //this._mc.destroy();
         this.props.dispatch(resetGameState(this.props.gameKey));
         this.props.backToStartScreen();
     }
@@ -547,8 +557,9 @@ class Game extends Component {
     }
 
     dropItHard() {
+        if (Date.now() - this.state.timeDropped < 100) return;
         let dropAmount = this.state.tetromino.ghostPosition[1] - this.state.tetromino.position[1];
-        this.moveTetromino(0, dropAmount);
+        console.log(this.moveTetromino(0, dropAmount));
         // for triggering the next tetromino
         this.moveTetromino(0, 1);
         let score = dropAmount * this.props.level;
@@ -624,9 +635,9 @@ class Game extends Component {
                 }
                 break;
             case (" "): // hard drop
-                if (Date.now() - this.state.timeDropped > 100) {
-                    this.dropItHard()
-                }
+                this.setState({
+                    dropHard: true
+                });
                 break;
             default:
                 break;
@@ -727,6 +738,14 @@ class Game extends Component {
             startScreenHandler={this.returnToStartMenu}
         />;
         if (this.state.isMobile) {
+            let controls = <div id="MobileControls">
+                <button className="btn btn-primary" onClick={ () => {if (this.state.canRotate) { this.setState({ rotate: true }); } } }><i className="fas fa-sync-alt"></i></button>
+                <button className="btn btn-primary" onClick={ () => this.setState({ moveX: -1 }) }><i className="fas fa-arrow-left"></i></button>
+                <button className="btn btn-primary" onClick={ () => this.setState({ moveX: 1 }) } ><i className="fas fa-arrow-right"></i></button>
+                <button className="btn btn-primary" style={ (this.state.pushDown) ? { backgroundColor: 'black', color: 'white' } : {} } onClick={ () => this.setState({ pushDown: !this.state.pushDown }) }><i className="fas fa-chevron-down"></i></button>
+                <button className="btn btn-primary" onClick={ () => this.setState({ dropHard: true }) }><i className="fas fa-level-down-alt"></i></button>
+                <button className="btn btn-primary" onClick={ () => { if (!this.state.waitingToHold) { this.holdTetromino() } } }><i className="fas fa-briefcase"></i></button>
+            </div>;
             return <div id="Game" className="unselectable container">
                 <audio ref={this._music} src="./soundtrack.mp3" loop={true} />
                 <div id="Panel" className="col-xs-12 col-md-3">
@@ -746,6 +765,7 @@ class Game extends Component {
                 <div className="col-xs-12 col-md-5" style={{ display: 'flex', justifyContent: 'center' }}>
                     <Matrix gestureListener={this.listenForGestures} ref={this._matrix} />
                 </div>
+                { controls }
                 { gameOverModal }
             </div>;
         } else {
