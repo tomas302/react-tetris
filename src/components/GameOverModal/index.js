@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactModal from 'react-modal';
 import './GameOverModal.css';
+import Leaderboard from '../Leaderboard';
 
 class GameOverModal extends React.Component {
 
@@ -23,7 +24,7 @@ class GameOverModal extends React.Component {
         if (!this.props.gameOver) {
             return <React.Fragment></React.Fragment>;
         }
-        return <div id="GameOver" className={ "" } onClick={ this.handler }>
+        return <div id="GameOver" className={""} onClick={this.handler}>
             <ReactModal
                 ariaHideApp={false}
                 isOpen={this.props.gameOver}
@@ -31,15 +32,20 @@ class GameOverModal extends React.Component {
                 className="GameOverModal"
                 overlayClassName="GameOverOverlay"
             >
-                <b>GAME OVER</b>
+                <h1>GAME OVER</h1>
+                <Leaderboard data={this.props.leaderboardData} newRecord={this.props.newRecord} setNewRecord={this.props.setNewRecord} />
                 <p>
-                    { this.props.score }
-                    { this.props.level }
-                    { this.props.lines }
+                    <b>SCORE:</b> {this.props.score}
+                </p>
+                <p>
+                    <b>LEVEL:</b> {this.props.level}
+                </p>
+                <p>
+                    <b>LINES:</b> {this.props.lines}
                 </p>
                 <div id="GameOverButtonGroup">
-                    <button className={ "unselectable btn btn-success" } onClick={this.handlePlayAgain}><i className="fas fa-redo-alt"></i></button>
-                    <button className={ "unselectable btn btn-secondary" } onClick={this.handleStartScreen}><i className="fas fa-home"></i></button>
+                    <button className={"unselectable btn btn-success"} onClick={this.handlePlayAgain}><i className="fas fa-redo-alt"></i></button>
+                    <button className={"unselectable btn btn-secondary"} onClick={this.handleStartScreen}><i className="fas fa-home"></i></button>
                 </div>
             </ReactModal>
         </div>;

@@ -4,6 +4,7 @@ import Game from '../components/Game';
 function mapStateToProps(store){
     return {
         gameKey: store.gameKey,
+        score: store.stats.score,
         matrix: store.matrix,
         nextTetromino: store.nextTetrominos[0],
         timer: store.timer,

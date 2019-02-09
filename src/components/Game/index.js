@@ -20,8 +20,9 @@ import Hammer from 'hammerjs';
 class Game extends Component {
     constructor(props) {
         super(props);
-
-        let storage = localStorage.getItem("reactTetris") ? JSON.parse(localStorage.getItem("reactTetris")) : { mute: false, leaderboard: [] };
+        let storage = localStorage.getItem("reactTetris") ?
+            JSON.parse(localStorage.getItem("reactTetris"))
+            : { mute: false, leaderboard: [{ name: '', score: 6000 }, { name: '', score: 5000 }, { name: '', score: 4000 }, { name: '', score: 3000 }, { name: '', score: 2000 }] };
         this.state = {
             storage: storage,
             running: false,
@@ -50,6 +51,7 @@ class Game extends Component {
         this.listenForGestures = this.listenForGestures.bind(this);
         this.gameTick = this.gameTick.bind(this);
         this.gameOver = this.gameOver.bind(this);
+        this.restartGame = this.restartGame.bind(this);
         this.returnToStartMenu = this.returnToStartMenu.bind(this);
 
         // core game methods
@@ -73,6 +75,8 @@ class Game extends Component {
         this.onFullscreenChange = this.onFullscreenChange.bind(this);
         this.switchMute = this.switchMute.bind(this);
         this.switchControls = this.switchControls.bind(this);
+        this.newRecord = this.newRecord.bind(this);
+        this.setNewRecord = this.setNewRecord.bind(this);
 
         document.onfullscreenchange = this.onFullscreenChange;
     }
@@ -85,6 +89,9 @@ class Game extends Component {
             localStorage.setItem('reactTetris', JSON.stringify(this.state.storage));
         };
         window.onunload = beforeLeaving;
+        if (this.props.running) {
+            this.startGame();
+        }
     }
 
     componentWillUnmount() {
@@ -171,6 +178,7 @@ class Game extends Component {
     }
 
     gameTick() {
+        if (this.state.gameOver) return;
         if (Date.now() - this.state.lastTimeGravityWasApplied > this.props.gravityInterval) {
             this.moveTetromino(0, 1);
             this.setState({
@@ -212,15 +220,20 @@ class Game extends Component {
         // give the choice to play again or go to the main menu
     }
 
+    restartGame() {
+        localStorage.setItem('reactTetris', JSON.stringify(this.state.storage));
+        this.props.dispatch(resetGameState(this.props.gameKey));
+        this.props.refreshApp(true);
+    }
+
     returnToStartMenu() {
-        if (!this.state.running) return;
         this.setState({
             running: false
         });
         localStorage.setItem('reactTetris', JSON.stringify(this.state.storage));
         //this._mc.destroy();
         this.props.dispatch(resetGameState(this.props.gameKey));
-        this.props.backToStartScreen();
+        this.props.refreshApp(false);
     }
 
     spawnNextTetromino(next, waitForHolding) {
@@ -559,7 +572,7 @@ class Game extends Component {
     dropItHard() {
         if (Date.now() - this.state.timeDropped < 100) return;
         let dropAmount = this.state.tetromino.ghostPosition[1] - this.state.tetromino.position[1];
-        console.log(this.moveTetromino(0, dropAmount));
+        this.moveTetromino(0, dropAmount);
         // for triggering the next tetromino
         this.moveTetromino(0, 1);
         let score = dropAmount * this.props.level;
@@ -699,6 +712,31 @@ class Game extends Component {
         });
     }
 
+    newRecord() {
+        let score = this.props.score;
+        let leaderboard = this.state.storage.leaderboard;
+        let isNewRecord = false;
+        let newPosition;
+        for (let i = 0; i < leaderboard.length; i++) {
+            if (score > leaderboard[i].score) {
+                newPosition = i;
+                isNewRecord = true;
+                break;
+            }
+        }
+        return [isNewRecord, newPosition];
+    }
+
+    setNewRecord(name, newPosition) {
+        let leaderboard = this.state.storage.leaderboard.slice();
+        leaderboard.splice(newPosition, 0, { name: name, score: this.props.score });
+        leaderboard.pop();
+        this.setState({
+            storage: { ...this.state.storage, leaderboard: leaderboard }
+        });
+        localStorage.setItem('reactTetris', JSON.stringify(this.state.storage));
+    }
+
     render() {
         if (!this.state.running && !this.state.gameOver) {
             return <div id="Start" className="unselectable container" style={{ maxWidth: "unset", backgroundColor: '#4c64ff' }}>
@@ -736,15 +774,18 @@ class Game extends Component {
             gameOver={this.state.gameOver}
             restartGameHandler={this.restartGame}
             startScreenHandler={this.returnToStartMenu}
+            leaderboardData={this.state.storage.leaderboard}
+            newRecord={this.newRecord}
+            setNewRecord={this.setNewRecord}
         />;
         if (this.state.isMobile) {
             let controls = <div id="MobileControls">
-                <button className="btn btn-primary" onClick={ () => {if (this.state.canRotate) { this.setState({ rotate: true }); } } }><i className="fas fa-sync-alt"></i></button>
-                <button className="btn btn-primary" onClick={ () => this.setState({ moveX: -1 }) }><i className="fas fa-arrow-left"></i></button>
-                <button className="btn btn-primary" onClick={ () => this.setState({ moveX: 1 }) } ><i className="fas fa-arrow-right"></i></button>
-                <button className="btn btn-primary" style={ (this.state.pushDown) ? { backgroundColor: 'black', color: 'white' } : {} } onClick={ () => this.setState({ pushDown: !this.state.pushDown }) }><i className="fas fa-chevron-down"></i></button>
-                <button className="btn btn-primary" onClick={ () => this.setState({ dropHard: true }) }><i className="fas fa-level-down-alt"></i></button>
-                <button className="btn btn-primary" onClick={ () => { if (!this.state.waitingToHold) { this.holdTetromino() } } }><i className="fas fa-briefcase"></i></button>
+                <button className="btn btn-primary" onClick={() => { if (this.state.canRotate) { this.setState({ rotate: true }); } }}><i className="fas fa-sync-alt"></i></button>
+                <button className="btn btn-primary" onClick={() => this.setState({ moveX: -1 })}><i className="fas fa-arrow-left"></i></button>
+                <button className="btn btn-primary" onClick={() => this.setState({ moveX: 1 })} ><i className="fas fa-arrow-right"></i></button>
+                <button className="btn btn-primary" style={(this.state.pushDown) ? { backgroundColor: 'black', color: 'white' } : {}} onClick={() => this.setState({ pushDown: !this.state.pushDown })}><i className="fas fa-chevron-down"></i></button>
+                <button className="btn btn-primary" onClick={() => this.setState({ dropHard: true })}><i className="fas fa-level-down-alt"></i></button>
+                <button className="btn btn-primary" onClick={() => { if (!this.state.waitingToHold) { this.holdTetromino() } }}><i className="fas fa-briefcase"></i></button>
             </div>;
             return <div id="Game" className="unselectable container">
                 <audio ref={this._music} src="./soundtrack.mp3" loop={true} />
@@ -765,8 +806,8 @@ class Game extends Component {
                 <div className="col-xs-12 col-md-5" style={{ display: 'flex', justifyContent: 'center' }}>
                     <Matrix gestureListener={this.listenForGestures} ref={this._matrix} />
                 </div>
-                { controls }
-                { gameOverModal }
+                {controls}
+                {gameOverModal}
             </div>;
         } else {
             return <div id="Game" className="unselectable">
@@ -785,7 +826,7 @@ class Game extends Component {
                         <NextBox />
                     </div>
                 </div>
-                { gameOverModal }
+                {gameOverModal}
             </div>;
         }
     }
