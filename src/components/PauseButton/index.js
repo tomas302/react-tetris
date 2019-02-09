@@ -47,7 +47,7 @@ class PauseButton extends React.Component {
             <h1>PAUSE</h1>
             <div id="PauseButtonGroup">
                 <button className={ "unselectable btn btn-success" } onClick={ this.handleCloseModal }><i className="fas fa-play"></i></button>
-                <ControlInformation isMobile={ this.props.isMobile } handler={ this.props.controlHandler } open={ this.props.openControls } />
+                { (!( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) )) ? <ControlInformation isMobile={ this.props.isMobile } handler={ this.props.controlHandler } open={ this.props.openControls } /> : "" }
                 <button className={ "unselectable btn btn-info" } onClick={ this.handleBackToStart }><i className="fas fa-home"></i></button>
             </div>
             </ReactModal>

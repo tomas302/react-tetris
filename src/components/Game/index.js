@@ -778,15 +778,18 @@ class Game extends Component {
             newRecord={this.newRecord}
             setNewRecord={this.setNewRecord}
         />;
-        if (this.state.isMobile) {
-            let controls = <div id="MobileControls">
+        let controls = <div id="MobileControls">
+        <div>
                 <button className="btn btn-primary" onClick={() => { if (this.state.canRotate) { this.setState({ rotate: true }); } }}><i className="fas fa-sync-alt"></i></button>
                 <button className="btn btn-primary" onClick={() => this.setState({ moveX: -1 })}><i className="fas fa-arrow-left"></i></button>
                 <button className="btn btn-primary" onClick={() => this.setState({ moveX: 1 })} ><i className="fas fa-arrow-right"></i></button>
+                </div><div>
                 <button className="btn btn-primary" style={(this.state.pushDown) ? { backgroundColor: 'black', color: 'white' } : {}} onClick={() => this.setState({ pushDown: !this.state.pushDown })}><i className="fas fa-chevron-down"></i></button>
                 <button className="btn btn-primary" onClick={() => this.setState({ dropHard: true })}><i className="fas fa-level-down-alt"></i></button>
                 <button className="btn btn-primary" onClick={() => { if (!this.state.waitingToHold) { this.holdTetromino() } }}><i className="fas fa-briefcase"></i></button>
+                </div>
             </div>;
+        if (this.state.isMobile) {
             return <div id="Game" className="unselectable container">
                 <audio ref={this._music} src="./soundtrack.mp3" loop={true} />
                 <div id="Panel" className="col-xs-12 col-md-3">
@@ -803,6 +806,11 @@ class Game extends Component {
                         <NextBox />
                     </div>
                 </div>
+                <div id="social-buttons">
+                        <a target="_blank" rel="noopener noreferrer" href="https://github.com/tomas302"><i className="fab fa-github"></i></a>
+                        <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/tom%C3%A1s-dornell-bonilla-b64a62177/"><i className="fab fa-linkedin"></i></a>
+                        <a target="_blank" rel="noopener noreferrer" href="https://tomas302.github.io/"><i className="fas fa-user-circle"></i></a>
+                    </div>
                 <div className="col-xs-12 col-md-5" style={{ display: 'flex', justifyContent: 'center' }}>
                     <Matrix gestureListener={this.listenForGestures} ref={this._matrix} />
                 </div>
@@ -810,13 +818,26 @@ class Game extends Component {
                 {gameOverModal}
             </div>;
         } else {
+            if(!( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) )) {
+                controls = [];
+            }
             return <div id="Game" className="unselectable">
                 <audio ref={this._music} src="./soundtrack.mp3" loop={true} />
                 <div id="left-panel">
                     <HoldBox />
                     <StatsBox />
                 </div>
-                <Matrix gestureListener={this.listenForGestures} ref={this._matrix} />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Matrix gestureListener={this.listenForGestures} ref={this._matrix} />
+                    {controls}
+                    <div id="social-buttons">
+                        <h5>Coded by Thomas Dornell</h5>
+                        <h6>Check me out!</h6>
+                        <a target="_blank" rel="noopener noreferrer" href="https://github.com/tomas302"><i className="fab fa-github"></i></a>
+                        <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/tom%C3%A1s-dornell-bonilla-b64a62177/"><i className="fab fa-linkedin"></i></a>
+                        <a target="_blank" rel="noopener noreferrer" href="https://tomas302.github.io/"><i className="fas fa-user-circle"></i></a>
+                    </div>
+                </div>
                 <div id="right-panel">
                     <div className="row">
                         {pauseButton}
