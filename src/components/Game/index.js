@@ -100,10 +100,8 @@ class Game extends Component {
         this.setState({
             running: true
         });
-        this.props.dispatch(initNextTetrominos());
-        this.spawnNextTetromino();
+        this.props.dispatch(initNextTetrominos(this.spawnNextTetromino()));
         this.props.dispatch(startTimer(20, this.gameTick));
-        console.log(this.state);
     }
 
     listenForGestures(matrixDOM) {
@@ -247,6 +245,7 @@ class Game extends Component {
         });
 
         changeTetrominoPosition(newTetrominoObject, [5, newTetrominoObject.position[1]], this.props.dispatch, 0, this.calculateGhostPieceY(newTetrominoObject, newTetrominoObject.position));
+        return tetrominoProps.type;
     }
 
     /*

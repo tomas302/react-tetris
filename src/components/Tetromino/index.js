@@ -239,6 +239,15 @@ const getRandomTetromino = (amount, nextList) => {
         if (amount > 10) throw Error("Why do you need so many Tetrominos??");
         let tetrominos = [];
         let availableTetro = types.slice();
+        if (nextList !== undefined) {
+            for (let i = 0; i < availableTetro.length; i++) {
+                for (let j = 0; j < nextList.length; j++) {
+                    if (availableTetro[i] === nextList[j]) {
+                        availableTetro.splice(i, 1);
+                    }
+                }
+            }
+        }
         for (let i = 0; i < amount; i++) {
             if (i % types.length === 0 && i !== 0) {
                 availableTetro = types.slice();

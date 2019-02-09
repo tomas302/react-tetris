@@ -19,8 +19,9 @@ export const copyMatrix = (newMatrix, lowerLine) => ({
 })
 
 // NextBox
-export const initNextTetrominos = () => ({
-    type: 'INIT_NEXT_TETROMINOS'
+export const initNextTetrominos = (currentTetro) => ({
+    type: 'INIT_NEXT_TETROMINOS',
+    currentTetro: currentTetro
 })
 
 export const loadNewTetromino = () => ({
