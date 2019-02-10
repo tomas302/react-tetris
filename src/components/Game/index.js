@@ -831,7 +831,7 @@ class Game extends Component {
                     <Matrix gestureListener={this.listenForGestures} ref={this._matrix} />
                     {controls}
                     <div id="social-buttons">
-                        <h5>Coded by Thomas Dornell</h5>
+                        <h5>Coded by Tom&aacute;s Dornell</h5>
                         <h6>Check me out!</h6>
                         <a target="_blank" rel="noopener noreferrer" href="https://github.com/tomas302"><i className="fab fa-github"></i></a>
                         <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/tom%C3%A1s-dornell-bonilla-b64a62177/"><i className="fab fa-linkedin"></i></a>

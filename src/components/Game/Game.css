@@ -197,6 +197,12 @@
     }
 }
 
+@media only screen and (max-height: 679px)  {
+    #social-buttons {
+        display: none
+    }
+}
+
 .unselectable {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
